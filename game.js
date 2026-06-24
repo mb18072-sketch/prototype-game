@@ -55,7 +55,7 @@ class PlayScene extends Phaser.Scene {
 
         // --- 🛣️ 4レーンの設定（DFJKの並び） ---
         this.laneXs = [180, 260, 380, 460]; 
-        this.targetY = 400; 
+        this.targetY = 600; 
 
         // 判定ラインの見た目（矩形）
         const colors = [0xff2222, 0xff7777, 0x77ffff, 0x22ffff];
@@ -299,8 +299,8 @@ class PlayScene extends Phaser.Scene {
 // ==========================================
 const config = {
     type: Phaser.WEBGL,
-    width: 640,
-    height: 480,
+    width: 1280,
+    height: 720,
     backgroundColor: "#111111",
     pixelArt: true,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
