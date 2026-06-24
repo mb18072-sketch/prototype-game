@@ -10,7 +10,7 @@ class BootScene extends Phaser.Scene {
         // 📊 FNFのJSON譜面データを読み込み
         this.load.json('fnfSong', 'assets/untold-loneliness-hard.json'); 
         
-        // 🎧 音楽ファイルを読み込み
+        // 🎧 音楽ファイルを読み込み（ファイルがなくてもエラーで止まらないようにPlayScene側でガードします）
         this.load.audio('songAudio', 'assets/untold.mp3'); 
     }
     
@@ -68,11 +68,11 @@ class PlayScene extends Phaser.Scene {
         // --- 📦 ノーツ管理グループ ---
         this.notesGroup = this.add.group();
 
-        // デフォルト値の設定（JSON読み込み失敗時のバックアップ）
+        // 初期値
         this.songSpeed = 3.3;
         this.allNotesData = [];
 
-        // --- 📊 FNF JSON譜面の解析（絶対クラッシュしない安全ガード付き） ---
+        // --- 📊 FNF JSON譜面の解析 ---
         try {
             const chartData = this.cache.json.get('fnfSong');
             
@@ -94,7 +94,7 @@ class PlayScene extends Phaser.Scene {
 
                             if (isNaN(strumTime) || isNaN(fnfLane) || fnfLane < 0) return;
 
-                            // 💡 敵・味方ノーツの分離判定
+                            // 💡 敵・味方ノーツの分離
                             let isBfNote = false;
                             if (mustHitSection) {
                                 isBfNote = (fnfLane < 4);
@@ -102,15 +102,13 @@ class PlayScene extends Phaser.Scene {
                                 isBfNote = (fnfLane >= 4);
                             }
 
-                            // 💡 4レーン（DFJK）への圧縮割り当て（バグ修正済み）
+                            // 💡 4レーン（DFJK）への圧縮割り当て
                             let myLaneIndex = 0;
-                            const rawLane = fnfLane % 4; // 必ず 0, 1, 2, 3 のいずれかになる
+                            const rawLane = fnfLane % 4; 
 
                             if (isBfNote) {
-                                // 味方ノーツ ＝ 右側の2レーン（Jキーなら2、Kキーなら3）
                                 myLaneIndex = (rawLane === 0 || rawLane === 1) ? 2 : 3;
                             } else {
-                                // 敵ノーツ ＝ 左側の2レーン（Dキーなら0、Fキーなら1）
                                 myLaneIndex = (rawLane === 0 || rawLane === 1) ? 0 : 1;
                             }
 
@@ -125,7 +123,7 @@ class PlayScene extends Phaser.Scene {
                 }
             }
         } catch (error) {
-            console.error("JSONの解析中にエラーが発生しましたが、無視して続行します:", error);
+            console.error("JSON解析エラー:", error);
         }
 
         // 譜面データを時間の早い順にソート
@@ -141,38 +139,43 @@ class PlayScene extends Phaser.Scene {
         ];
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        // --- 🎧 楽曲再生 ＆ 音楽がない場合の安全対策 ---
-        this.useDummyTimer = false;
+        // --- 🎧 【重要】ここを完全安全化しました ---
+        this.useDummyTimer = true; // デフォルトで自前タイマーを使用する（絶対に止まらないようにする）
         this.dummyTime = 0;
+        this.songAudio = null;
 
+        // オーディオの追加と再生を完全に別枠で囲み、失敗してもゲームが絶対に止まらないようにガード
         try {
-            this.songAudio = this.sound.add('songAudio');
-            this.songAudio.play();
-            
-            // 再生が始まらなかったら自動で無音タイマーモードへ
-            this.time.delayedCall(100, () => {
-                if (!this.songAudio || !this.songAudio.isPlaying) {
-                    this.startDummyTimer();
-                }
-            });
+            if (this.sound.keys.hasOwnProperty('songAudio') || this.cache.audio.exists('songAudio')) {
+                this.songAudio = this.sound.add('songAudio');
+                this.songAudio.play();
+                this.useDummyTimer = false; // 再生に成功したら実曲タイマーに切り替え
+                console.log("音楽の再生に成功しました。楽曲同期モードで動きます。");
+            }
         } catch (e) {
-            this.startDummyTimer();
+            console.warn("オーディオの再生に失敗したか、ファイルがありません。無音デバッグモードで動きます。", e);
+            this.useDummyTimer = true;
         }
     }
 
-    startDummyTimer() {
-        console.warn("音楽ファイルが未準備のため、無音モードで実行します。");
-        this.useDummyTimer = true;
-    }
-
     update(time, delta) {
+        // 曲の位置（ミリ秒）を取得
         let songPosition = 0;
-        if (this.useDummyTimer) {
+        
+        if (this.useDummyTimer || !this.songAudio || !this.songAudio.isPlaying) {
             this.dummyTime += delta;
             songPosition = this.dummyTime;
         } else {
-            if (!this.songAudio || !this.songAudio.isPlaying) return;
             songPosition = this.songAudio.seek * 1000; 
+        }
+
+        // 「READY?」の文字を最初の3秒間（3000ms）だけ表示し、過ぎたら消す（またはSTART!にする）
+        if (songPosition > 2000) {
+            if (songPosition < 3500) {
+                this.judgeText.setText('START!').setColor('#00ff00');
+            } else if (this.judgeText.text === 'START!') {
+                this.judgeText.setText(''); // 文字を消す
+            }
         }
 
         const lookAheadTime = this.targetY / this.speedFactor; 
@@ -245,7 +248,9 @@ class PlayScene extends Phaser.Scene {
         // ゲームオーバー判定
         if (this.hp <= 0) {
             this.judgeText.setText('GAME OVER').setColor('#ff0000');
-            if (this.songAudio) this.songAudio.stop();
+            if (this.songAudio) {
+                try { this.songAudio.stop(); } catch(e){}
+            }
             this.scene.pause();
         }
     }
