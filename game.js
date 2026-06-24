@@ -3,7 +3,11 @@
 // ==========================================
 class BootScene extends Phaser.Scene {
     constructor() { super('BootScene'); }
-    preload() {}
+    preload() {
+        // ★アセットの読み込みパスが正しいか確認してください
+        this.load.json('fnfSong', 'assets/untold-loneliness-hard.json'); 
+        this.load.audio('songAudio', 'assets/untold.mp3'); // 実際の音楽ファイル名に合わせる
+    }
     create() { this.scene.start('TitleScene'); }
 }
 
@@ -34,11 +38,10 @@ class PlayScene extends Phaser.Scene {
         this.judgeText = this.add.text(240, 120, 'READY?', { fontSize: '32px', fill: '#fff' });
 
         // --- 🛣️ 4レーンの設定（DFJK） ---
-        // レーン0, 1 = 防御（敵ノーツ用）、レーン2, 3 = ゲージ（BFノーツ用）
         this.laneXs = [180, 260, 380, 460]; 
         this.targetY = 400; // 判定ライン（strumY）
 
-        // 判定ラインの見た目（画像が入るまでは矩形）
+        // 判定ラインの見た目
         const colors = [0xff2222, 0xff7777, 0x77ffff, 0x22ffff];
         const keyNames = ['D(防)', 'F(防)', 'J(溜)', 'K(溜)'];
         for (let i = 0; i < 4; i++) {
@@ -49,53 +52,61 @@ class PlayScene extends Phaser.Scene {
         // --- 📦 ノーツ管理グループ ---
         this.notesGroup = this.add.group();
 
-        // --- 📊 FNF JSON譜面の高度な解析 ---
+        // --- 📊 FNF JSON譜面の高度な解析（安全版） ---
         const chartData = this.cache.json.get('fnfSong');
-        this.songSpeed = chartData.song.speed || 3.3; 
+        
+        // JSONのネスト構造（"song"オブジェクトの中身）を安全に取得
+        const songData = chartData.song ? chartData.song : chartData;
+        this.songSpeed = songData.speed || 3.3; 
         this.speedFactor = 0.45 * this.songSpeed;
 
-        this.allNotesData = []; // ここに解析したノーツをまとめます
+        this.allNotesData = []; 
 
-        if (chartData.song.notes && chartData.song.notes.length > 0) {
-            chartData.song.notes.forEach(section => {
-                const mustHitSection = section.mustHitSection; // BFのターンかどうかのフラグ
+        if (songData.notes && songData.notes.length > 0) {
+            songData.notes.forEach(section => {
+                // セクションデータ、および内部のノート配列が存在するか安全チェック
+                if (!section || !section.sectionNotes) return;
+
+                const mustHitSection = section.mustHitSection; // BFのカメラターンフラグ
                 
-                if (section.sectionNotes) {
-                    section.sectionNotes.forEach(noteData => {
-                        const strumTime = noteData[0]; // ノーツの時間（ms）
-                        const fnfLane = noteData[1];   // FNFのレーン（0〜7）
+                section.sectionNotes.forEach(noteData => {
+                    // データが不正、または配列の長さが足りない場合はスキップ
+                    if (!noteData || noteData.length < 2) return;
 
-                        if (fnfLane < 0) return; // 有効外のデータはスキップ
+                    const strumTime = noteData[0]; // ノーツの時間（ms）
+                    const fnfLane = parseInt(noteData[1], 10); // FNFのレーン（0〜7）
 
-                        // 💡 FNFの仕様に合わせた「敵」と「BF」の厳密な判定
-                        let isBfNote = false;
-                        
-                        if (fnfLane >= 4) {
-                            // レーン4〜7は、基本の向きとは「逆」のキャラクターのノーツ
-                            isBfNote = mustHitSection ? false : true;
-                        } else {
-                            // レーン0〜3は、基本の向きのキャラクターのノーツ
-                            isBfNote = mustHitSection ? true : false;
-                        }
+                    if (isNaN(fnfLane) || fnfLane < 0) return;
 
-                        // 💡 敵のノーツか、BFのノーツかによって流すレーンを振り分ける
-                        let myLaneIndex = 0;
-                        if (isBfNote) {
-                            // 【味方（BF）ノーツ】＝ 画面右側のゲージレーン（JキーかKキー：レーン2〜3）に割り当て
-                            myLaneIndex = (fnfLane % 2 === 0) ? 2 : 3; 
-                        } else {
-                            // 【敵ノーツ】＝ 画面左側の防御レーン（DキーかFキー：レーン0〜1）に割り当て
-                            myLaneIndex = (fnfLane % 2 === 0) === 0 ? 0 : 1;
-                        }
+                    // 💡 FNFのフォーマットに合わせた、敵・味方ノーツの完璧な分離ロジック
+                    let isBfNote = false;
+                    if (mustHitSection) {
+                        // mustHitSection が true の時： 0〜3がBF、4〜7が敵
+                        isBfNote = (fnfLane < 4);
+                    } else {
+                        // mustHitSection が false の時： 0〜3が敵、4〜7がBF
+                        isBfNote = (fnfLane >= 4);
+                    }
 
-                        this.allNotesData.push({
-                            strumTime: strumTime,
-                            lane: myLaneIndex,
-                            isBfNote: isBfNote, // 後でミス時のペナルティ判定に使用
-                            spawned: false
-                        });
+                    // 💡 レーンの割り当て（0〜3の4レーンに圧縮）
+                    let myLaneIndex = 0;
+                    const rawLane = fnfLane % 4; // 0, 1, 2, 3 のいずれかに丸める
+
+                    if (isBfNote) {
+                        // 味方ノーツ ＝ 右側の2レーン（JかK：レーン2〜3）に交互に振る
+                        myLaneIndex = (rawLane < 2) ? 2 : 3;
+                    } else {
+                        // 敵ノーツ ＝ 左側の2レーン（DかF：レーン0〜1）に交互に振る
+                        myLaneIndex = (rawLane < 2) ? 0 : 1;
+                    }
+
+                    this.allNotesData.push({
+                        strumTime: strumTime,
+                        lane: myLaneIndex,
+                        isBfNote: isBfNote,
+                        spawned: false
                     });
-                }
+                });
             });
         }
 
@@ -117,15 +128,14 @@ class PlayScene extends Phaser.Scene {
     }
 
     update() {
-        if (!this.songAudio.isPlaying) return;
+        if (!this.songAudio || !this.songAudio.isPlaying) return;
 
-        const songPosition = this.songAudio.seek * 1000; // Conductor.songPosition
-        const lookAheadTime = this.targetY / this.speedFactor; // ノーツ先読み時間
+        const songPosition = this.songAudio.seek * 1000; 
+        const lookAheadTime = this.targetY / this.speedFactor; 
 
         // 1. ノーツの出現チェック
         this.allNotesData.forEach(noteData => {
             if (!noteData.spawned && (noteData.strumTime - songPosition) < lookAheadTime) {
-                // 通常は画像（sprite）、プロトタイプ用に円図形（赤：敵の攻撃、青：BFのゲージ）
                 const color = (noteData.lane < 2) ? 0xff0000 : 0x00ffff;
                 const noteSprite = this.add.circle(this.laneXs[noteData.lane], -50, 15, color);
                 
@@ -147,14 +157,12 @@ class PlayScene extends Phaser.Scene {
 
             // 判定ラインを通り過ぎて160ms以上遅れたら自動MISS
             if (note.strumTime - songPosition < -160) {
-                // 敵の攻撃（防御ノーツ）を見逃したときだけ大ダメージ！
                 if (!note.isBfNote) {
-                    this.hp -= 12; // ダメージ量
+                    this.hp -= 12; 
                     if (this.hp < 0) this.hp = 0;
                     this.hpText.setText(`PLAYER HP: ${this.hp} / ${this.maxHp}`);
                     this.judgeText.setText('MISS! ダメージ').setColor('#ff0000');
                 } else {
-                    // 自キャラのノーツ（ゲージノーツ）はスルーしてもノーダメージ
                     this.judgeText.setText('MISS').setColor('#888888');
                 }
                 this.combo = 0;
@@ -170,27 +178,21 @@ class PlayScene extends Phaser.Scene {
             }
         }
 
-        // 4. 💡 スペースキーでの回復処理
-        // ゲージが50以上、かつ現在のHPが最大HP未満のときに発動可能
+        // 4. スペースキーでの回復処理
         if (this.gauge >= 50 && this.hp < this.maxHp) {
             this.healTipText.setText('[SPACE] HEAL READY! (可)').setColor('#00ff00');
             
             if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-                this.gauge -= 50; // ゲージを50消費
-                this.hp += 25;   // HPを25回復
+                this.gauge -= 50; 
+                this.hp += 25;   
                 
-                // ★最大HP（100）を超えないように制限
-                if (this.hp > this.maxHp) {
-                    this.hp = this.maxHp;
-                }
+                if (this.hp > this.maxHp) this.hp = this.maxHp;
 
-                // UIの更新
                 this.hpText.setText(`PLAYER HP: ${this.hp} / ${this.maxHp}`);
                 this.gaugeText.setText('ACTION GAUGE: ' + this.gauge + '%');
                 this.judgeText.setText('CURE! 回復成功').setColor('#00ffbb');
             }
         } else {
-            // 条件を満たしていない時はテキストを暗くしておく
             if (this.hp >= this.maxHp) {
                 this.healTipText.setText('[SPACE] HP MAX').setColor('#888888');
             } else {
@@ -206,7 +208,6 @@ class PlayScene extends Phaser.Scene {
         }
     }
 
-    // 🕒 ミリ秒ズレ判定処理
     checkHit(laneIndex, songPosition) {
         const children = this.notesGroup.getChildren();
         let closestNote = null;
@@ -224,16 +225,15 @@ class PlayScene extends Phaser.Scene {
         }
 
         if (closestNote && minDiff < 160) {
-            if (minDiff <= 45) { // PERFECT (SICK)
+            if (minDiff <= 45) { 
                 this.judgeText.setText('PERFECT!!!').setColor('#00ff00');
                 this.combo++;
-                // ゲージレーン（2 or 3）を叩いた時のみゲージ増加
                 if (laneIndex >= 2) this.gauge += 15;
-            } else if (minDiff <= 90) { // GOOD
+            } else if (minDiff <= 90) { 
                 this.judgeText.setText('GOOD').setColor('#ffff00');
                 this.combo++;
                 if (laneIndex >= 2) this.gauge += 8;
-            } else { // BAD
+            } else { 
                 this.judgeText.setText('BAD').setColor('#ff8800');
                 this.combo = 0;
             }
