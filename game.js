@@ -243,7 +243,7 @@ class PlayScene extends Phaser.Scene {
             if (note.strumTime - songPosition < -160) {
                 if (!note.isBfTurnNote) {
                     // 🔴 敵ターン中に生成された防御ノーツをスルーしたらダメージ！
-                    this.hp -= 12; 
+                    this.hp -= 10; 
                     if (this.hp < 0) this.hp = 0;
                     this.hpText.setText(`PLAYER HP: ${this.hp} / ${this.maxHp}`);
                     this.judgeText.setText('MISS! ダメージ').setColor('#ff0000');
@@ -270,7 +270,7 @@ class PlayScene extends Phaser.Scene {
             
             if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
                 this.gauge -= 50; 
-                this.hp += 25;   
+                this.hp += 35;   
                 if (this.hp > this.maxHp) this.hp = this.maxHp;
 
                 this.hpText.setText(`PLAYER HP: ${this.hp} / ${this.maxHp}`);
