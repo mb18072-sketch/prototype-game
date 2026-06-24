@@ -317,7 +317,11 @@ class PlayScene extends Phaser.Scene {
                 this.judgeText.setText('PERFECT!!!').setColor('#00ff00');
                 this.combo++;
                 // 🔵 成功したノーツが「味方ターン（チャージ）」のものならゲージ増加
-                if (closestNote.isBfTurnNote) this.gauge += 15; 
+                if (closestNote.isBfTurnNote) {
+                    this.gauge += 15;
+                    this.hp += 2; 
+                    if (this.hp > this.maxHp) this.hp = this.maxHp;
+                }
             } else if (minDiff <= 90) { // GOOD
                 this.judgeText.setText('GOOD').setColor('#ffff00');
                 this.combo++;
