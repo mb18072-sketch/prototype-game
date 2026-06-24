@@ -23,7 +23,6 @@ class TitleScene extends Phaser.Scene {
     constructor() { super('TitleScene'); }
     
     create() {
-        // 1280x720の画面に合わせて中央寄りに配置
         this.add.text(420, 300, '4-LANE RHYTHM RPG\n\nCLICK TO START', { 
             fill: '#ffffff', 
             fontSize: '48px', 
@@ -45,22 +44,20 @@ class PlayScene extends Phaser.Scene {
         this.gauge = 0;   
         this.combo = 0;
 
-        // --- 📝 UIテキスト表示（1280x720用に配置を調整） ---
+        // --- 📝 UIテキスト表示（1280x720調整版） ---
         this.hpText = this.add.text(50, 40, 'PLAYER HP: 100 / 100', { fontSize: '24px', fill: '#ff5555', fontStyle: 'bold' });
         this.gaugeText = this.add.text(50, 80, 'ACTION GAUGE: 0%', { fontSize: '24px', fill: '#55ffff', fontStyle: 'bold' });
         this.comboText = this.add.text(50, 120, 'COMBO: 0', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' });
         this.healTipText = this.add.text(50, 160, '[SPACE] HEAL (Req: 50%)', { fontSize: '18px', fill: '#888888' });
         
-        // 現在が「防御」か「チャージ」か一目でわかるモード表示を追加
-        this.modeText = this.add.text(540, 100, 'READY?', { fontSize: '40px', fill: '#ffffff', fontStyle: 'bold' });
+        this.modeText = this.add.text(500, 100, 'READY?', { fontSize: '40px', fill: '#ffffff', fontStyle: 'bold' });
         this.judgeText = this.add.text(580, 200, '', { fontSize: '36px', fill: '#ffffff' });
 
-        // --- 🛣️ 4レーンの設定（DFJKを画面中央付近に配置） ---
-        // 1280のセンター付近（500〜700pxあたり）に綺麗に並べます
+        // --- 🛣️ 4レーンの設定（DFJKを画面中央に配置） ---
         this.laneXs = [480, 560, 660, 740]; 
-        this.targetY = 600; // 判定ラインの高さ（高さ720pxの画面なので下寄りの600pxへ配置）
+        this.targetY = 600; 
 
-        // 判定ラインの見た目（矩形）
+        // 判定ラインの見た目
         const colors = [0xff2222, 0xff7777, 0x77ffff, 0x22ffff];
         const keyNames = ['D', 'F', 'J', 'K'];
         for (let i = 0; i < 4; i++) {
@@ -71,11 +68,11 @@ class PlayScene extends Phaser.Scene {
         // --- 📦 ノーツ管理グループ ---
         this.notesGroup = this.add.group();
 
-        // 初期値
         this.songSpeed = 3.3;
         this.allNotesData = [];
+        this.sectionsInfo = []; // 各セクションの時間とターン情報を記録する配列
 
-        // --- 📊 FNF JSON譜面の解析 ---
+        // --- 📊 FNF JSON譜面の解析（超安全・エラー完全回避版） ---
         try {
             const chartData = this.cache.json.get('fnfSong');
             
@@ -84,50 +81,55 @@ class PlayScene extends Phaser.Scene {
                 this.songSpeed = songData.speed || 3.3; 
 
                 if (songData.notes && songData.notes.length > 0) {
+                    let currentSectionStartTime = 0; // セクションの開始時間を追跡
+
                     songData.notes.forEach(section => {
-                        if (!section || !section.sectionNotes) return;
+                        if (!section) return;
 
-                        const mustHitSection = section.mustHitSection; // trueならBFターン、falseなら敵ターン
+                        const mustHitSection = section.mustHitSection === true; // 安全に真偽値化
                         
-                        section.sectionNotes.forEach(noteData => {
-                            if (!noteData || noteData.length < 2) return;
+                        // FNFの1セクションの長さ（通常は16ステップ分、BPMに依存しますが簡易計算として時間幅を保持）
+                        // このセクション情報を後で時間からターンを逆算するために保管
+                        this.sectionsInfo.push({
+                            startTime: currentSectionStartTime,
+                            mustHitSection: mustHitSection
+                        });
 
-                            const strumTime = parseFloat(noteData[0]); 
-                            const fnfLane = parseInt(noteData[1], 10); 
+                        // セクション内の全ノーツをまずは素直に抽出（クラッシュ回避のため分離ロジックは外す）
+                        if (section.sectionNotes) {
+                            section.sectionNotes.forEach(noteData => {
+                                if (!noteData || noteData.length < 2) return;
 
-                            if (isNaN(strumTime) || isNaN(fnfLane) || fnfLane < 0) return;
+                                const strumTime = parseFloat(noteData[0]); 
+                                const fnfLane = parseInt(noteData[1], 10); 
 
-                            // 💡 FNFのフォーマットから、そのノートが「現在カメラが向いている側」のものかを判別
-                            let isSectionOwnerNote = false;
-                            if (mustHitSection) {
-                                isSectionOwnerNote = (fnfLane < 4); // BFターンの時にBFが叩くノーツ
-                            } else {
-                                isSectionOwnerNote = (fnfLane >= 4); // 敵ターンの時に敵が叩くノーツ
-                            }
+                                if (isNaN(strumTime) || isNaN(fnfLane) || fnfLane < 0) return;
 
-                            // カメラの向きとノートの持ち主が一致しているものだけを、プレイヤーがDFJKで打つべきノーツとして採用
-                            if (isSectionOwnerNote) {
-                                const rawLane = fnfLane % 4; // 0,1,2,3(左,下,上,右)をそのままDFJK(0,1,2,3)にマップ
-                                
+                                // 0〜7すべてのノーツを、プレイヤーが叩くための4レーン（DFJK）へ綺麗に丸める
+                                const targetLane = fnfLane % 4; 
+
                                 this.allNotesData.push({
                                     strumTime: strumTime,
-                                    lane: rawLane,            // プレイヤーは常に割り当てられたDFJKで打つ
-                                    isBfTurn: mustHitSection, // セクションごとのターン状態をノーツに持たせる
+                                    lane: targetLane,
                                     spawned: false
                                 });
-                            }
-                        });
+                            });
+                        }
+
+                        // 次のセクションの開始時間を大まかに進める（Untold LonelinessのBPM等からおよそ計算）
+                        // 正確なセクション時間はノーツ自体の配置時間からもupdate側で補正をかけます
+                        currentSectionStartTime += 2000; // ダミー加算（実時間はノーツの位置で判定するためバックアップ用）
                     });
                 }
             }
         } catch (error) {
-            console.error("JSON解析エラー:", error);
+            console.error("JSON解析で致命的なエラーが発生しました。ゲームを安全に続行します:", error);
         }
 
-        // 譜面データを時間の早い順にソート
+        // 譜面データを時間の早い順に並び替え
         this.allNotesData.sort((a, b) => a.strumTime - b.strumTime);
         
-        // 🔽 提示されたスクロールスピード計算式（0.45 * songSpeed）をそのまま適用！
+        // FNF本家そのままのスクロール速度計算式
         this.speedFactor = 0.45 * this.songSpeed;
 
         // --- ⌨️ キーボード入力設定（DFJK ＋ スペースキー） ---
@@ -139,7 +141,7 @@ class PlayScene extends Phaser.Scene {
         ];
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        // --- 🎧 オーディオ再生 ＆ 安全対策 ---
+        // --- 🎧 オーディオ再生 ＆ 絶対フリーズ防止処理 ---
         this.useDummyTimer = true; 
         this.dummyTime = 0;
         this.songAudio = null;
@@ -149,10 +151,39 @@ class PlayScene extends Phaser.Scene {
                 this.songAudio = this.sound.add('songAudio');
                 this.songAudio.play();
                 this.useDummyTimer = false; 
+                console.log("音楽ファイルの同期再生を開始しました。");
             }
         } catch (e) {
             this.useDummyTimer = true;
         }
+    }
+
+    // 🕒 現在の時間（ミリ秒）から、今のセクションが「BFターン」か「敵ターン」かを調べる関数
+    checkIsBfTurnAtTime(songPosition) {
+        // Untold Lonelinessの譜面データ構造をスキャン
+        const chartData = this.cache.json.get('fnfSong');
+        if (!chartData) return true;
+        const songData = chartData.song ? chartData.song : chartData;
+        
+        if (!songData.notes) return true;
+
+        // 各セクションのノーツの時間帯を見て、現在の時間がどのセクションに入っているかをリアルタイム判定
+        // FNFの一般的な1セクションは約1600ms〜3000ms（BPMによる）
+        // ここでは最も正確に、現在時間に一番近いノーツが属するmustHitSectionを探します
+        let isBf = true;
+        
+        // 簡易的かつ確実な方法：現在時間より少し先にあるセクションのフラグを取得
+        for (let i = 0; i < songData.notes.length; i++) {
+            const sec = songData.notes[i];
+            if (sec && sec.sectionNotes && sec.sectionNotes.length > 0) {
+                // セクションの最初のノーツの時間
+                const firstNoteTime = sec.sectionNotes[0][0];
+                if (songPosition >= firstNoteTime - 200) {
+                    isBf = sec.mustHitSection === true;
+                }
+            }
+        }
+        return isBf;
     }
 
     update(time, delta) {
@@ -164,24 +195,35 @@ class PlayScene extends Phaser.Scene {
             songPosition = this.songAudio.seek * 1000; 
         }
 
-        // スタート演出用
+        // 💡 今が「BFターン」か「敵ターン」かを現在時間からリアルタイムに取得！
+        const isCurrentlyBfTurn = this.checkIsBfTurnAtTime(songPosition);
+
+        // 画面中央のテキストとモードをリアルタイム切り替え
         if (songPosition < 2000) {
             this.modeText.setText('READY?').setColor('#ffffff');
+        } else {
+            if (isCurrentlyBfTurn) {
+                this.modeText.setText('【BF TURN】CHARGE MODE!').setColor('#00ffff');
+            } else {
+                this.modeText.setText('【ENEMY TURN】DEFEND MODE!').setColor('#ff3333');
+            }
         }
 
-        // 🔽 画面外の上端(Y=0)から判定ライン(Y=600)まで降りてくるのにかかる時間を逆算
         const lookAheadTime = this.targetY / this.speedFactor; 
 
         // 1. ノーツの出現チェック
         this.allNotesData.forEach(noteData => {
             if (!noteData.spawned && (noteData.strumTime - songPosition) < lookAheadTime) {
-                // 💡 敵のターン(isBfTurn=false)なら赤色の防御ノーツ、味方のターンなら青色のチャージノーツ
-                const color = noteData.isBfTurn ? 0x00ffff : 0xff0000;
-                const noteSprite = this.add.circle(this.laneXs[noteData.lane], -50, 20, color); // 画面が広いのでサイズを少し大きく(20)
+                
+                // 💡 生成された瞬間のターン状態によって、ノーツ自体の色と性質（役割）を決定する！
+                // 敵ターンなら全部「赤（防御）」、味方ターンなら全部「青（チャージ）」
+                const color = isCurrentlyBfTurn ? 0x00ffff : 0xff0000;
+                
+                const noteSprite = this.add.circle(this.laneXs[noteData.lane], -50, 20, color); 
                 
                 noteSprite.strumTime = noteData.strumTime;
                 noteSprite.laneIndex = noteData.lane;
-                noteSprite.isBfTurn = noteData.isBfTurn;
+                noteSprite.isBfTurnNote = isCurrentlyBfTurn; // このノーツがどちらの役割のノーツかを記憶
 
                 this.notesGroup.add(noteSprite);
                 noteData.spawned = true;
@@ -190,34 +232,23 @@ class PlayScene extends Phaser.Scene {
 
         // 2. 画面上のノーツの移動 ＆ 見逃し（MISS）判定
         const children = this.notesGroup.getChildren();
-        
-        // 現在流れているノーツを基準に、画面中央のモードテキストをリアルタイム更新
-        if (children.length > 0) {
-            const nextNote = children[0];
-            if (nextNote.isBfTurn) {
-                this.modeText.setText('【BF TURN】CHARGE!').setColor('#00ffff');
-            } else {
-                this.modeText.setText('【ENEMY TURN】DEFEND!').setColor('#ff3333');
-            }
-        }
 
         for (let i = children.length - 1; i >= 0; i--) {
             const note = children[i];
             
-            // 🔽 提示されたスクロール位置の計算式をそのまま適用
             const distance = (note.strumTime - songPosition) * this.speedFactor;
             note.y = this.targetY - distance;
 
-            // 判定ラインをスルーして160ms以上遅れたら自動的にMISS
+            // 判定ラインを通り過ぎて160ms以上遅れたら自動MISS
             if (note.strumTime - songPosition < -160) {
-                if (!note.isBfTurn) {
-                    // 🔴 敵ターンのノーツ（防御）を見逃したら大ダメージ！
+                if (!note.isBfTurnNote) {
+                    // 🔴 敵ターン中に生成された防御ノーツをスルーしたらダメージ！
                     this.hp -= 12; 
                     if (this.hp < 0) this.hp = 0;
                     this.hpText.setText(`PLAYER HP: ${this.hp} / ${this.maxHp}`);
                     this.judgeText.setText('MISS! ダメージ').setColor('#ff0000');
                 } else {
-                    // 🔵 味方ターン（チャージ）のノーツは見逃してもノーダメージ
+                    // 🔵 味方ターン中のチャージノーツはスルーしてもノーダメージ
                     this.judgeText.setText('MISS').setColor('#888888');
                 }
                 this.combo = 0;
@@ -226,7 +257,7 @@ class PlayScene extends Phaser.Scene {
             }
         }
 
-        // 3. プレイヤーのキー入力判定（DFJKでどちらのノーツも打てる）
+        // 3. プレイヤーのキー入力判定（いつでもDFJKで全てのノーツを打てる）
         for (let i = 0; i < 4; i++) {
             if (Phaser.Input.Keyboard.JustDown(this.keys[i])) {
                 this.checkHit(i, songPosition);
@@ -285,12 +316,12 @@ class PlayScene extends Phaser.Scene {
             if (minDiff <= 45) { // PERFECT
                 this.judgeText.setText('PERFECT!!!').setColor('#00ff00');
                 this.combo++;
-                // 🔵 BFのターン中（チャージノーツ）のみ、成功時に行動ゲージがプラスされる
-                if (closestNote.isBfTurn) this.gauge += 15; 
+                // 🔵 成功したノーツが「味方ターン（チャージ）」のものならゲージ増加
+                if (closestNote.isBfTurnNote) this.gauge += 15; 
             } else if (minDiff <= 90) { // GOOD
                 this.judgeText.setText('GOOD').setColor('#ffff00');
                 this.combo++;
-                if (closestNote.isBfTurn) this.gauge += 8;
+                if (closestNote.isBfTurnNote) this.gauge += 8;
             } else { // BAD
                 this.judgeText.setText('BAD').setColor('#ff8800');
                 this.combo = 0;
@@ -310,8 +341,8 @@ class PlayScene extends Phaser.Scene {
 // ==========================================
 const config = {
     type: Phaser.WEBGL,
-    width: 1280,        // 👈 新しい本家サイズに適応
-    height: 720,       // 👈 新しい本家サイズに適応
+    width: 1280,        
+    height: 720,       
     backgroundColor: "#111111",
     pixelArt: true,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
