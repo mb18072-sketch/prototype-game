@@ -1,138 +1,108 @@
 // ==========================================
 // 1. 各シーンのクラス定義
 // ==========================================
-
-// --- 素材読み込み画面 ---
 class BootScene extends Phaser.Scene {
     constructor() { super('BootScene'); }
     preload() {}
     create() { this.scene.start('TitleScene'); }
 }
 
-// --- タイトル画面 ---
 class TitleScene extends Phaser.Scene {
     constructor() { super('TitleScene'); }
     create() {
-        this.add.text(180, 200, 'RHYTHM RPG\n\nCLICK TO START', { fill: '#fff', fontSize: '32px', align: 'center' });
+        this.add.text(180, 200, '4-LANE RHYTHM RPG\n\nCLICK TO START', { fill: '#fff', fontSize: '32px', align: 'center' });
         this.input.on('pointerdown', () => this.scene.start('PlayScene'));
     }
 }
 
-// --- 音ゲー本番画面（プロトタイプ） ---
+// --- 4レーン版 音ゲー本番画面 ---
 class PlayScene extends Phaser.Scene {
     constructor() { super('PlayScene'); }
 
     create() {
-        // --- 📊 ステータス初期化 ---
-        this.hp = 100;
-        this.gauge = 0;
+        // 🛣️ 4レーンのX座標を設定（DFJKの並びに合わせて綺麗に配置）
+        // レーン0, 1 = 防御用（D, Fキー） / レーン2, 3 = ゲージ用（J, Kキー）
+        this.laneXs = [180, 260, 380, 460]; 
+        this.targetY = 400; // 判定ラインの高さ
 
-        // --- 📝 UIテキスト ---
-        this.hpText = this.add.text(20, 20, 'PLAYER HP: 100', { fontSize: '18px', fill: '#ff5555' });
-        this.gaugeText = this.add.text(20, 50, 'ACTION GAUGE: 0%', { fontSize: '18px', fill: '#55ffff' });
-        this.comboText = this.add.text(20, 80, 'COMBO: 0', { fontSize: '18px', fill: '#ffffff' });
-        this.combo = 0;
-        
-        this.judgeText = this.add.text(240, 150, 'READY?', { fontSize: '32px', fill: '#fff', align: 'center' });
+        // 判定ラインの目印（四角）と対応キーのテキストを設置
+        const colors = [0xff2222, 0xff7777, 0x77ffff, 0x22ffff];
+        const keyNames = ['Dキー', 'Fキー', 'Jキー', 'Kキー']; // ★DFJKに変更！
 
-        // --- 🛣️ レーンと判定ラインの配置（X座標を固定） ---
-        this.leftLaneX = 240;  // 左レーン（防御）
-        this.rightLaneX = 400; // 右レーン（ゲージ）
-        this.targetY = 400;    // 判定ラインの高さ
+        for (let i = 0; i < 4; i++) {
+            this.add.rectangle(this.laneXs[i], this.targetY, 60, 10, colors[i]);
+            this.add.text(this.laneXs[i] - 20, this.targetY + 20, keyNames[i], { fontSize: '12px' });
+        }
 
-        // 判定ライン（ターゲット）の目印を設置
-        this.add.rectangle(this.leftLaneX, this.targetY, 60, 10, 0xff5555);  // 赤
-        this.add.rectangle(this.rightLaneX, this.targetY, 60, 10, 0x55ffff); // 青
-        this.add.text(this.leftLaneX - 30, this.targetY + 20, 'Dキー(防)', { fontSize: '12px' });
-        this.add.text(this.rightLaneX - 30, this.targetY + 20, 'Jキー(溜)', { fontSize: '12px' });
-
-        // --- 📦 ノーツ管理用のグループ ---
-        // これを作っておくと、for文を使わなくても複数のノーツを一括で動かせます
+        // 📦 ノーツ管理グループ
         this.notesGroup = this.add.group();
 
-        // --- ⏱️ 定期的にノーツを湧かせるタイマー ---
-        // 1秒（1000ミリ秒）ごとに、ランダムでどちらかのレーンにノーツを生成する
+        // ⏱️ タイマー（0.6秒ごとにノーツを湧かせる）
         this.time.addEvent({
-            delay: 1000,
+            delay: 600,
             callback: this.spawnNote,
             callbackScope: this,
             loop: true
         });
 
-        // --- ⌨️ キーボード入力の設定 ---
-        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-        this.keyJ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J);
-    }
-
-    // 💡 ノーツを新しく生成する関数
-    spawnNote() {
-        // 50%の確率で左（1）か右（2）かを決める
-        const laneType = Phaser.Math.Between(1, 2); 
-        const x = (laneType === 1) ? this.leftLaneX : this.rightLaneX;
-        const color = (laneType === 1) ? 0xff0000 : 0x00ffff; // 赤か青
-
-        // 画面の上端（Y=0）にノーツ（円）を作成
-        const note = this.add.circle(x, 0, 15, color);
-        
-        // 後で判定するときに「どっちのレーンか」が分かるように、目印（カスタムプロパティ）を仕込んでおく
-        note.laneType = laneType;
-
-        // グループにポイッと放り込む
-        this.notesGroup.add(note);
+        // ⌨️ キーボード入力設定（★DFJKに完全修正！）
+        this.keys = [
+            this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
+            this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J),
+            this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K)
+        ];
     }
 
     update() {
-        const noteSpeed = 5; // ノーツが落ちる速度（ピクセル/フレーム）
+        const noteSpeed = 6; // 4レーン用に少しスピーディに
         const children = this.notesGroup.getChildren();
 
-        // --- 1. すべてのノーツを下方向に移動させる（逆ループで安全に削除） ---
+        // ノーツの移動と見逃し（MISS）処理
         for (let i = children.length - 1; i >= 0; i--) {
             const note = children[i];
             note.y += noteSpeed;
 
-            // 判定ラインを通り過ぎて画面外（Y=450以上）に行っちゃった場合
             if (note.y > 450) {
-                if (note.laneType === 1) {
-                    // 防御ノーツをスルーした場合はペナルティ！ダメージ！
-                    this.hp -= 15;
+                // 防御レーン（0か1）を見逃したらダメージ
+                if (note.laneIndex < 2) {
+                    this.hp -= 10;
                     this.hpText.setText('PLAYER HP: ' + this.hp);
                     this.judgeText.setText('MISS! ダメージ').setColor('#ff0000');
                 } else {
-                    // ゲージノーツはスルーしてもノーダメージ、MISSになるだけ
                     this.judgeText.setText('MISS').setColor('#888888');
                 }
                 this.combo = 0;
                 this.comboText.setText('COMBO: ' + this.combo);
                 
-                note.destroy(); // 画面とグループから消去
+                note.destroy();
             }
         }
 
-        // --- 2. プレイヤーのキー入力と判定 ---
-        if (Phaser.Input.Keyboard.JustDown(this.keyD)) {
-            this.checkHit(1); // 左レーン（Dキー）の判定チェック
-        }
-        if (Phaser.Input.Keyboard.JustDown(this.keyJ)) {
-            this.checkHit(2); // 右レーン（Jキー）の判定チェック
+        // 4つのキーの入力をループでチェック
+        for (let i = 0; i < 4; i++) {
+            if (Phaser.Input.Keyboard.JustDown(this.keys[i])) {
+                this.checkHit(i); // 押されたキーに対応するレーンを判定
+            }
         }
 
-        // --- 3. ゲームオーバー判定 ---
+        // ゲームオーバー
         if (this.hp <= 0) {
             this.judgeText.setText('GAME OVER').setColor('#ff0000');
             this.scene.pause();
         }
     }
 
-    // 💡 キーが押されたとき、一番近いノーツを叩けているかチェックする関数
-    checkHit(laneType) {
+    // 💡 判定処理
+    checkHit(laneIndex) {
         const children = this.notesGroup.getChildren();
         let closestNote = null;
         let minDistance = 999;
 
-        // 今画面にあるノーツの中から「同じレーン」かつ「一番判定ラインに近い」ものを探す
+        // 同じレーンで一番近いノーツを探す
         for (let i = 0; i < children.length; i++) {
             const note = children[i];
-            if (note.laneType === laneType) {
+            if (note.laneIndex === laneIndex) {
                 const dist = Math.abs(note.y - this.targetY);
                 if (dist < minDistance) {
                     minDistance = dist;
@@ -141,30 +111,25 @@ class PlayScene extends Phaser.Scene {
             }
         }
 
-        // 一番近いノーツがあり、それが判定圏内（例えば距離60ピクセル以内）ならヒット！
+        // 判定圏内ならヒット
         if (closestNote && minDistance < 60) {
-            
             if (minDistance < 15) {
                 this.judgeText.setText('PERFECT!!!').setColor('#00ff00');
                 this.combo++;
-                if (laneType === 2) this.gauge += 20; // ゲージノーツなら大幅チャージ
+                if (laneIndex >= 2) this.gauge += 15; // ゲージレーンならチャージ
             } else if (minDistance < 35) {
                 this.judgeText.setText('GOOD').setColor('#ffff00');
                 this.combo++;
-                if (laneType === 2) this.gauge += 10;
+                if (laneIndex >= 2) this.gauge += 8;
             } else {
                 this.judgeText.setText('BAD').setColor('#ff8800');
                 this.combo = 0;
             }
 
-            // ゲージの最大値は100
             if (this.gauge >= 100) this.gauge = 100;
 
-            // UI更新
             this.gaugeText.setText('ACTION GAUGE: ' + this.gauge + '%');
             this.comboText.setText('COMBO: ' + this.combo);
-
-            // 叩いたノーツは消す！
             closestNote.destroy();
         }
     }
@@ -179,10 +144,7 @@ const config = {
     height: 480,
     backgroundColor: "#111111",
     pixelArt: true,
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
-    },
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     audio: { disableWebAudio: false },
     scene: [BootScene, TitleScene, PlayScene]
 };
