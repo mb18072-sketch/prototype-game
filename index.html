@@ -6,6 +6,17 @@
     <link href="https://www.gstatic.com/images/branding/searchlogo/ico/favicon.ico" rel="icon">
 
     <style>
+        @font-face {
+            font-family: 'MyCustomFont'; /* 👈 ゲーム内で使うフォントの好きな名前 */
+            src: url('assets/fonts/JF-Dot-K14-2004.ttf') format('truetype'); /* 👈 フォントファイルのパス */
+        }
+
+        /* 💡 バグ防止用：ブラウザに最初からフォントを認識させておくための隠しテキスト */
+        .font-preload {
+            font-family: 'MyCustomFont';
+            position: absolute;
+            opacity: 0;
+        }
         body {
             margin: 0;
             background: black;

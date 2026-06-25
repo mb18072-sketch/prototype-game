@@ -24,6 +24,7 @@ class TitleScene extends Phaser.Scene {
     
     create() {
         this.add.text(420, 300, '4-LANE RHYTHM RPG\n\nCLICK TO START', { 
+            fontFamily: 'MyCustomFont',
             fill: '#ffffff', 
             fontSize: '48px', 
             align: 'center' 
@@ -45,13 +46,13 @@ class PlayScene extends Phaser.Scene {
         this.combo = 0;
 
         // --- 📝 UIテキスト表示（1280x720調整版） ---
-        this.hpText = this.add.text(50, 40, 'PLAYER HP: 100 / 100', { fontSize: '24px', fill: '#ff5555', fontStyle: 'bold' });
-        this.gaugeText = this.add.text(50, 80, 'ACTION GAUGE: 0%', { fontSize: '24px', fill: '#55ffff', fontStyle: 'bold' });
-        this.comboText = this.add.text(50, 120, 'COMBO: 0', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' });
-        this.healTipText = this.add.text(50, 160, '[SPACE] HEAL (Req: 50%)', { fontSize: '18px', fill: '#888888' });
+        this.hpText = this.add.text(50, 40, 'PLAYER HP: 100 / 100', { fontSize: '24px', fontFamily: 'MyCustomFont', fill: '#ff5555', fontStyle: 'bold' });
+        this.gaugeText = this.add.text(50, 80, 'ACTION GAUGE: 0%', { fontSize: '24px', fontFamily: 'MyCustomFont', fill: '#55ffff', fontStyle: 'bold' });
+        this.comboText = this.add.text(50, 120, 'COMBO: 0', { fontSize: '24px', fontFamily: 'MyCustomFont', fill: '#ffffff', fontStyle: 'bold' });
+        this.healTipText = this.add.text(50, 160, '[SPACE] HEAL (Req: 50%)', { fontSize: '18px', fontFamily: 'MyCustomFont', fill: '#888888' });
         
-        this.modeText = this.add.text(500, 100, 'READY?', { fontSize: '40px', fill: '#ffffff', fontStyle: 'bold' });
-        this.judgeText = this.add.text(580, 200, '', { fontSize: '36px', fill: '#ffffff' });
+        this.modeText = this.add.text(500, 100, 'READY?', { fontSize: '40px', fontFamily: 'MyCustomFont', fill: '#ffffff', fontStyle: 'bold' });
+        this.judgeText = this.add.text(580, 200, '', { fontSize: '36px', fontFamily: 'MyCustomFont', fill: '#ffffff' });
 
         // --- 🛣️ 4レーンの設定（DFJKを画面中央に配置） ---
         this.laneXs = [480, 560, 660, 740]; 
@@ -62,7 +63,7 @@ class PlayScene extends Phaser.Scene {
         const keyNames = ['D', 'F', 'J', 'K'];
         for (let i = 0; i < 4; i++) {
             this.add.rectangle(this.laneXs[i], this.targetY, 65, 12, colors[i]);
-            this.add.text(this.laneXs[i] - 10, this.targetY + 25, keyNames[i], { fontSize: '18px', fontStyle: 'bold' });
+            this.add.text(this.laneXs[i] - 10, this.targetY + 25, keyNames[i], { fontSize: '18px', fontFamily: 'MyCustomFont', fontStyle: 'bold' });
         }
 
         // --- 📦 ノーツ管理グループ ---
