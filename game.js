@@ -111,7 +111,9 @@ class PlayScene extends Phaser.Scene {
                                 this.allNotesData.push({
                                     strumTime: strumTime,
                                     lane: targetLane,
-                                    spawned: false
+                                    isPlayer: fnfLane > 3,
+                                    spawned: false,
+                                    mustHitSection: mustHitSection
                                 });
                             });
                         }
@@ -217,13 +219,15 @@ class PlayScene extends Phaser.Scene {
                 
                 // 💡 生成された瞬間のターン状態によって、ノーツ自体の色と性質（役割）を決定する！
                 // 敵ターンなら全部「赤（防御）」、味方ターンなら全部「青（チャージ）」
-                const color = isCurrentlyBfTurn ? 0x00ffff : 0xff0000;
+                const isPlayer = (noteData.isPlayer !== noteData.mustHitSection);
+
+                const color = isPlayer ? 0x00ffff : 0xff0000;
                 
                 const noteSprite = this.add.circle(this.laneXs[noteData.lane], -50, 20, color); 
                 
                 noteSprite.strumTime = noteData.strumTime;
                 noteSprite.laneIndex = noteData.lane;
-                noteSprite.isBfTurnNote = isCurrentlyBfTurn; // このノーツがどちらの役割のノーツかを記憶
+                noteSprite.isBfTurnNote = isPlayer; // このノーツがどちらの役割のノーツかを記憶
 
                 this.notesGroup.add(noteSprite);
                 noteData.spawned = true;
