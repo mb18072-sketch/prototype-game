@@ -1,3 +1,5 @@
+import { depth } from './constants.js';
+
 export class UndertaleObject extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, depth = 200) {
         super(scene.matter.world, x, y, texture);

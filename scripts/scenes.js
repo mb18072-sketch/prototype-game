@@ -1,3 +1,9 @@
+import { SaveManager } from './core.js';
+import { InputManager, SoundManager } from './managers.js';
+import { MenuCursor, BattleCard } from './ui.js';
+import { Board, RedSoul, Bone } from './objects.js';
+import { normalizeKey } from './constants.js';
+
 export class BootScene extends Phaser.Scene {
     constructor() {
         super({key: "BootScene"});
