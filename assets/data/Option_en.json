@@ -1,0 +1,28 @@
+{
+    "option": {
+        "lang": "LANGUAGE",
+        "keybind": {
+            "title": "KEYBIND",
+            "actions": {
+                "confirm": "CONFIRM",
+                "cancel": "CANCEL",
+                "aux": "SUB ACTION",
+                "up": "UP",
+                "down": "DOWN",
+                "left": "LEFT",
+                "right": "RIGHT",
+                "modifier": "CTRL"
+            }
+        },
+        "sound": {
+            "title": "SOUND",
+            "bgm": "BGM",
+            "se": "SE"
+        },
+        "display": "DISPLAY",
+        "fullscreen": "FULLSCREEN",
+        "textSpeed": "TEXTSPEED",
+        "battleUI": "BATTLE UI",
+        "developer": "DEVELOPER MODE"
+    }
+}

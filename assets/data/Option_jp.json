@@ -1,0 +1,28 @@
+{
+    "option": {
+        "lang": "言語",
+        "keybind": {
+            "title": "キー配置",
+            "actions": {
+                "confirm": "決定",
+                "cancel": "戻る",
+                "aux": "補助動作",
+                "up": "上",
+                "down": "下",
+                "left": "左",
+                "right": "右",
+                "modifier": "CTRL"
+            }
+        },
+        "sound": {
+            "title": "サウンド",
+            "bgm": "BGM",
+            "se": "SE"
+        },
+        "display": "表示",
+        "fullscreen": "フルスクリーン",
+        "textSpeed": "テキスト速度",
+        "battleUI": "バトルUI",
+        "developer": "開発者モード"
+    }
+}
