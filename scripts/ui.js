@@ -1,5 +1,3 @@
-import { UndertaleScene } from './scenes.js';
-
 export class MenuCursor {
     constructor({
         rows = 1,
