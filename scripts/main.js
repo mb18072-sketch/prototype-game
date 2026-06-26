@@ -1,3 +1,13 @@
+import { 
+    BootScene, 
+    TitleScene, 
+    MainMenuScene, 
+    OptionScene, 
+    BattleSelectScene, 
+    PlayScene, 
+    EditorScene 
+} from "./scenes.js";
+
 window.addEventListener("DOMContentLoaded", async () => {
     await document.fonts.load('16px "Determination"');
     await document.fonts.load('16px "JF東雲ゴシック"');

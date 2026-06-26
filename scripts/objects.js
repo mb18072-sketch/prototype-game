@@ -1,4 +1,4 @@
-class UndertaleObject extends Phaser.Physics.Matter.Sprite {
+export class UndertaleObject extends Phaser.Physics.Matter.Sprite {
     constructor(scene, x, y, texture, depth = 200) {
         super(scene.matter.world, x, y, texture);
 
@@ -85,7 +85,7 @@ class UndertaleObject extends Phaser.Physics.Matter.Sprite {
     update2(time, delta) {}
 }
 
-class Board extends Phaser.GameObjects.Graphics {
+export class Board extends Phaser.GameObjects.Graphics {
     constructor(scene,x,y,width,height) {
         super(scene,{x: x+0.5,y: y+0.5});
 
@@ -150,7 +150,7 @@ class Board extends Phaser.GameObjects.Graphics {
     update2(time,delta) {}
 }
 
-class Soul extends UndertaleObject {
+export class Soul extends UndertaleObject {
     constructor(scene,x,y,board,color=0xffffff) {
         super(scene,x,y,"assets/images/soul/soul",depth.battle.soul);
 
@@ -225,7 +225,7 @@ class Soul extends UndertaleObject {
     update2(time,delta) {}
 }
 
-class RedSoul extends Soul {
+export class RedSoul extends Soul {
     constructor(scene,x,y,board) {
         super(scene,x,y,board,0xff0000);
     }
@@ -240,7 +240,7 @@ class RedSoul extends Soul {
     }
 }
 
-class Bullet extends UndertaleObject {
+export class Bullet extends UndertaleObject {
     constructor(scene,x,y,baseWidth,baseHeight,scaleX,scaleY,texture,destroyOnHit,destroyOutsideBoard,ignore,inv,damage,kr=0,Depth=depth.battle.bullet.inside,events={hit: "bullet_hit"}) {
         super(scene,x,y,texture,Depth);
 
@@ -303,7 +303,7 @@ class Bullet extends UndertaleObject {
     }
 }
 
-class Bone extends Bullet {
+export class Bone extends Bullet {
     constructor(scene,x,y,length,ignore=true,destroyOnHit=false,inv=1000,damage,kr=0,events={hit: "bullet_hit"}){
         super(
             scene,

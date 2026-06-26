@@ -1,4 +1,4 @@
-class MenuCursor {
+export class MenuCursor {
     constructor({
         rows = 1,
         cols = 1,
@@ -33,7 +33,7 @@ class MenuCursor {
     }
 }
 
-class BattleCard extends Phaser.GameObjects.Container {
+export class BattleCard extends Phaser.GameObjects.Container {
     constructor(scene,x,y,battleData,type,objects = {}) {
         super(scene,x,y);
 

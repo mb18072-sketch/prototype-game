@@ -1,4 +1,4 @@
-class InputManager {
+export class InputManager {
     constructor(scene) {
         this.scene = scene;
         this.keyboard = scene.input.keyboard;
@@ -48,7 +48,7 @@ class InputManager {
     }
 }
 
-class SoundManager {
+export class SoundManager {
     constructor(scene) {
         this.scene = scene;
         this.bgm = null;
@@ -83,7 +83,7 @@ class SoundManager {
     }
 }
 
-class HpManager {
+export class HpManager {
     constructor(scene,maxHp,Hp,soul) {
 
         scene.updateables.push(this);

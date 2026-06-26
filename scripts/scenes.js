@@ -1,4 +1,4 @@
-class BootScene extends Phaser.Scene {
+export class BootScene extends Phaser.Scene {
     constructor() {
         super({key: "BootScene"});
     }
@@ -118,7 +118,7 @@ class BootScene extends Phaser.Scene {
     }
 }
 
-class UndertaleScene extends Phaser.Scene {
+export class UndertaleScene extends Phaser.Scene {
     constructor(key) {
         super(key);
 
@@ -300,7 +300,7 @@ class UndertaleScene extends Phaser.Scene {
     }
 }
 
-class TitleScene extends UndertaleScene {
+export class TitleScene extends UndertaleScene {
     constructor() {
         super({ key: "TitleScene"});
     }
@@ -328,7 +328,7 @@ class TitleScene extends UndertaleScene {
     }
 }
 
-class MainMenuScene extends UndertaleScene {
+export class MainMenuScene extends UndertaleScene {
     constructor() {
         super({ key: "MainMenuScene" });
     }
@@ -401,7 +401,7 @@ class MainMenuScene extends UndertaleScene {
     }
 }
 
-class OptionScene extends UndertaleScene {
+export class OptionScene extends UndertaleScene {
     constructor() {
         super({ key: "OptionScene" });
     }
@@ -917,7 +917,7 @@ class OptionScene extends UndertaleScene {
     }
 }
 
-class BattleSelectScene extends UndertaleScene {
+export class BattleSelectScene extends UndertaleScene {
     constructor() {
         super({key: "BattleSelectScene"});
     }
@@ -1075,7 +1075,7 @@ class BattleSelectScene extends UndertaleScene {
     }
 }
 
-class PlayScene extends UndertaleScene {
+export class PlayScene extends UndertaleScene {
     constructor() {
         super({key: "PlayScene"})
     }
@@ -1117,7 +1117,7 @@ class PlayScene extends UndertaleScene {
     }
 }
 
-class EditorScene extends UndertaleScene {
+export class EditorScene extends UndertaleScene {
     constructor() {
         super({key: "EditorScene"})
     }

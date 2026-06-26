@@ -1,5 +1,4 @@
-"use strict"
-const depth = {
+export const depth = {
     battle: {
         board: 400,
         bullet: {
@@ -17,7 +16,7 @@ const depth = {
         }
 }
 
-function normalizeKey(key) {
+export function normalizeKey(key) {
     key = key.toUpperCase();
 
     const map = {
