@@ -36,6 +36,8 @@ export class BootScene extends Phaser.Scene {
                 this.registry.set("textSpeed",5);
                 this.registry.set("battleUI","classic");
                 this.registry.set("developer",false);
+
+                this.scene.start("TitleScene");
             }
         })
     }
