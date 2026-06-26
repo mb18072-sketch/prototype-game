@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "type": "spritesheet"
+  },
+  "texture": {
+    "frameWidth": 20,
+    "frameHeight": 16,
+    "margin": 0,
+    "spacing": 0
+  },
+  "display": {
+    "defaultOrigin": {
+      "x": 0.5,
+      "y": 0.5
+    },
+    "defaultScale": 1,
+    "pixelPerfect": true,
+    "smoothing": false
+  },
+  "animations": {
+    "blast": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "frameRate": 12,
+      "repeat": 0
+    },
+    "end": {
+      "frames": [
+        4,
+        5
+      ],
+      "frameRate": 18,
+      "repeat": -1
+    }
+  }
+}

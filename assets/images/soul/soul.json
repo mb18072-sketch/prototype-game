@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "type": "spritesheet"
+  },
+  "texture": {
+    "frameWidth": 20,
+    "frameHeight": 16,
+    "margin": 0,
+    "spacing": 0
+  },
+  "display": {
+    "defaultOrigin": {
+      "x": 0.5,
+      "y": 0.5
+    },
+    "defaultScale": 1,
+    "pixelPerfect": true,
+    "smoothing": false
+  },
+  "animations": {
+    "spin_shards": {
+      "frames": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "frameRate": 4,
+      "repeat": -1
+    }
+  }
+}
