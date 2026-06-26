@@ -20,7 +20,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         physics: {
             default: "matter",
             matter: {
-                gravity: { y:  },
+                gravity: { y: 0 },
                 debug: false
             }
         },
