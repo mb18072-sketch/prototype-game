@@ -6,17 +6,6 @@
     <link href="https://www.gstatic.com/images/branding/searchlogo/ico/favicon.ico" rel="icon">
 
     <style>
-        @font-face {
-            font-family: 'MyCustomFont'; /* 👈 ゲーム内で使うフォントの好きな名前 */
-            src: url('assets/JF-Dot-K14-2004.ttf') format('truetype'); /* 👈 フォントファイルのパス */
-        }
-
-        /* 💡 バグ防止用：ブラウザに最初からフォントを認識させておくための隠しテキスト */
-        .font-preload {
-            font-family: 'MyCustomFont';
-            position: absolute;
-            opacity: 0;
-        }
         body {
             margin: 0;
             background: black;
@@ -24,6 +13,11 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+        }
+
+        #game-wrapper {
+            width: 640px;
+            height: 480px;
         }
 
         canvas {
@@ -38,7 +32,81 @@
         <div id="game"></div>
     </div>
 
+    <script>
+        /**
+         * エラーを画面下部の赤文字ログに出力する共通関数
+         */
+        function logErrorToScreen(type, message, details = "") {
+            let div = document.getElementById("error-log");
+            if (!div) {
+                div = document.createElement("pre");
+                div.id = "error-log";
+                div.style.position = "fixed";
+                div.style.bottom = "0";
+                div.style.left = "0";
+                div.style.width = "100%";
+                div.style.maxHeight = "50%";
+                div.style.overflow = "auto";
+                div.style.background = "rgba(0, 0, 0, 0.85)"; // 少し透過させて背景を見やすく
+                div.style.color = "#ff3333";
+                div.style.fontSize = "12px";
+                div.style.padding = "10px";
+                div.style.margin = "0";
+                div.style.zIndex = "999999";
+                div.style.borderTop = "2px solid red";
+                div.style.pointerEvents = "auto"; // ログ内をスクロールできるように
+                document.body.appendChild(div);
+            }
+
+            const timestamp = new Date().toLocaleTimeString();
+            const header = `[${timestamp}] --- ${type} ---`;
+            const logEntry = `${header}\n${message}\n${details}\n\n`;
+            
+            div.textContent += logEntry;
+            div.scrollTop = div.scrollHeight; // 常に最新のエラーが見えるようにスクロール
+            console.error(logEntry); // コンソールにも同時に出力
+        }
+
+        // 1. 通常のJavaScript実行エラーをキャッチ
+        window.onerror = function (msg, url, line, col, error) {
+            const details = [
+                "File: " + url,
+                "Line: " + line,
+                "Col: " + col,
+                "Stack: " + (error && error.stack)
+            ].join("\n");
+
+            logErrorToScreen("RUNTIME ERROR", msg, details);
+            return false;
+        };
+
+        // 2. Promise内のエラー（AssetLoaderなど）をキャッチ
+        window.onunhandledrejection = function (event) {
+            let reason = event.reason;
+            let message = "No reason provided";
+            let stack = "";
+
+            if (reason instanceof Error) {
+                message = reason.message;
+                stack = reason.stack;
+            } else if (typeof reason === "string") {
+                message = reason;
+            } else {
+                message = JSON.stringify(reason);
+            }
+
+            logErrorToScreen("PROMISE REJECTION (Async Error)", message, "Stack: " + stack);
+        };
+
+        // 3. (任意) リソース読み込みエラー（画像やスクリプト自体の404など）をキャッチ
+        window.addEventListener('error', function(event) {
+            if (event.target && (event.target.src || event.target.href)) {
+                logErrorToScreen("RESOURCE ERROR", "Failed to load: " + (event.target.src || event.target.href));
+            }
+        }, true);
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
-    <script type="module" src="game.js"></script>
+    <script type="module src="./scripts/main.js"></script>
 </body>
 </html>
