@@ -383,6 +383,12 @@ export class OptionScene extends UndertaleScene {
 
             item.set = (v) => {
                 const rootKey = keys[0];
+
+                if (keys.length === 1) {
+                    this.registry.set(rootKey, v);
+                    return;
+                }
+
                 let rootObj = JSON.parse(JSON.stringify(this.registry.get(rootKey) ?? {}));
                 
                 let current = rootObj;
