@@ -353,7 +353,6 @@ export class OptionScene extends UndertaleScene {
     }
 
     onCreate() {
-        alert("a")
         /*====型について====
         型はtypeで決めます。
         ====種類について====
@@ -369,8 +368,6 @@ export class OptionScene extends UndertaleScene {
         group 複数のoptionを一つにまとめて管理ができる
         */
         this.items = JSON.parse(JSON.stringify(this.cache.json.get("assets/data/Option_config")));
-
-        alert("b")
 
         const bindGetSet = (item) => {
             if (!item.registryKey) return;
@@ -411,11 +408,7 @@ export class OptionScene extends UndertaleScene {
             });
         };
 
-        alert("c")
-
         scanItemsRecursively(this.items);
-
-        alert("d")
 
         this.waitingKey = false;
         this.waitingOption = null;
