@@ -93,6 +93,7 @@ export class UndertaleScene extends Phaser.Scene {
         if (this.registry.get("developer")) {
             this.createDebugOverlay();
         }
+        alert(this.soundManager);
     }
 
     onCreate() {}
