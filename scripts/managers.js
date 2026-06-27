@@ -64,8 +64,10 @@ export class SoundManager {
 
     playSE(key) {
          alert(this.scene.registry.get("se"));
+         const vol = this.getSEVolume();
+         alert("vol");
         this.scene.sound.play(key, {
-            volume: this.getSEVolume()
+            volume: vol
         });
         alert("endSe")
     }
@@ -76,9 +78,7 @@ export class SoundManager {
 
     getSEVolume() {
         alert("vol")
-        const volume = this.scene.registry.get("se") / 100;
-        alert(volume);
-        return volume;
+        return this.scene.registry.get("se") / 100;
     }
 
     updateVolume() {
