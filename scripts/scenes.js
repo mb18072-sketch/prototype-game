@@ -81,6 +81,7 @@ export class UndertaleScene extends Phaser.Scene {
         this.input.setDefaultCursor("none");
 
         this.inputManager = new InputManager(this);
+        alert(this.registry.get("soundManager"))
         if (!this.registry.get("soundManager")) {
             this.soundManager = new SoundManager(this);
             this.registry.set("soundManager",this.soundManager);
@@ -313,7 +314,6 @@ export class MainMenuScene extends UndertaleScene {
 
         if (this.inputManager.wasPressed("confirm")
            ) {
-        alert("F")
             this.decide();
             this.soundManager.playSE("assets/sounds/snd_confirm");
            }
@@ -323,8 +323,6 @@ export class MainMenuScene extends UndertaleScene {
 
     decide() {
         const index = this.cursorManager.index;
-
-        alert("!!")
 
         switch (index) {
             case 0:
