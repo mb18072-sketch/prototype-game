@@ -64,14 +64,9 @@ export class SoundManager {
 
     playSE(key) {
          alert(this.scene.registry.get("se"));
-         const vol = this.getSEVolume();
-         alert(vol);
-         alert(this.scene.sound);
-         alert(this.scene.sound.play);
         this.scene.sound.play(key, {
-            volume: vol
+            volume: this.getSEVolume()
         });
-        alert("endSe")
     }
 
     getBGMVolume() {
@@ -79,7 +74,6 @@ export class SoundManager {
     }
 
     getSEVolume() {
-        alert("vol")
         return this.scene.registry.get("se") / 100;
     }
 

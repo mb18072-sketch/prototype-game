@@ -274,9 +274,9 @@ export class MainMenuScene extends UndertaleScene {
         this.load.json("assets/data/Option_jp", "./assets/data/Option_jp.json");
         this.load.json("assets/data/Option_config", "./assets/data/Option_config.json");
 
-        this.load.audio("assets/sounds/snd_switch", "./assets/sounds/snd_switch.mp3");
-        this.load.audio("assets/sounds/snd_confirm", "./assets/sounds/snd_confirm.mp3");
-        this.load.audio("assets/sounds/snd_cancel", "./assets/sounds/snd_cancel.mp3");
+        this.load.audio("assets/sounds/snd_switch", "./assets/sounds/snd_switch.wav");
+        this.load.audio("assets/sounds/snd_confirm", "./assets/sounds/snd_confirm.wav");
+        this.load.audio("assets/sounds/snd_cancel", "./assets/sounds/snd_cancel.wav");
     }
 
     onCreate() {
