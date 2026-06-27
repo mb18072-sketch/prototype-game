@@ -177,7 +177,12 @@ export class UndertaleScene extends Phaser.Scene {
 
     getTextFromKey(jsonName,key) {
         const lang = this.registry.get("lang") ?? "en";
-        const json = this.assets.getjson(`${jsonName}_${lang}`);
+        const json = this.cache.json.get(`${jsonName}_${lang}`);
+
+        if (!json) {
+            console.warn(`JSON not found: ${jsonName}_${lang}`);
+            return key;
+        }
         
        return key
         .split(".")
