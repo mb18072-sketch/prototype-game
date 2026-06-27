@@ -769,7 +769,7 @@ export class BattleSelectScene extends UndertaleScene {
 
         const triggerText = this.drawText(320,240, "* [Press ENTER or Click to Load Battle Folder]", {
             fontSize: 20,
-            color: 0xffffff,
+            color: 0xf0f0f0,
             origin: 0.5
         });
 
