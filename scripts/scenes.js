@@ -773,6 +773,8 @@ export class BattleSelectScene extends UndertaleScene {
             origin: 0.5
         });
 
+        alert(triggerText);
+
         const openFolderAndPlay = async () => {
             try {
                 const dirHandle = await window.showDirectoryPicker();
@@ -812,9 +814,7 @@ export class BattleSelectScene extends UndertaleScene {
             openFolderAndPlay();
         });
 
-        this.input.keyboard.on("keydown-ENTER", () => {
-            openFolderAndPlay();
-        });
+        alert(triggerText)
     }
 }
 
