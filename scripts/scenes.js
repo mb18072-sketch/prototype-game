@@ -767,19 +767,11 @@ export class BattleSelectScene extends UndertaleScene {
     async onCreate() {
         this.updateables = [];
 
-        this.drawText(320,240, "* [Press ENTER or Click to Load Battle Folder]", {
+        const triggerText = this.drawText("* [Press ENTER or Click to Load Battle Folder]",320,240,{
             fontSize: 20,
             color: 0xf0f0f0,
             origin: 0.5
         });
-
-        const triggerText = this.drawText(320,240, "* [Press ENTER or Click to Load Battle Folder]", {
-            fontSize: 20,
-            color: 0xf0f0f0,
-            origin: 0.5
-        });
-
-        alert(triggerText);
 
         const openFolderAndPlay = async () => {
             try {
@@ -819,8 +811,6 @@ export class BattleSelectScene extends UndertaleScene {
         triggerText.on("pointerdown", () => {
             openFolderAndPlay();
         });
-
-        alert(triggerText)
     }
 }
 
