@@ -367,7 +367,46 @@ export class OptionScene extends UndertaleScene {
         key Enterが押されたときに、keyを変える画面を開くプレイヤーの操作がenter→Zだったら、ここに入る値はzになる
         group 複数のoptionを一つにまとめて管理ができる
         */
-       this.items = 
+        this.items = this.items = JSON.parse(JSON.stringify(this.cache.json.get("assets/data/Option_config")));
+
+        const bindGetSet = (item) => {
+            if (!item.registryKey) return;
+            const keys = item.registryKey.split(".");
+
+            item.get = () => {
+                let current = this.registry.get(keys[0]);
+                for (let i = 1; i < keys.length; i++) {
+                    current = current?.[keys[i]];
+                }
+                return current ?? item.default ?? [];
+            };
+
+            item.set = (v) => {
+                const rootKey = keys[0];
+                let rootObj = JSON.parse(JSON.stringify(this.registry.get(rootKey) ?? {}));
+                
+                let current = rootObj;
+                for (let i = 1; i < keys.length - 1; i++) {
+                    const nextKey = keys[i];
+                    if (!current[nextKey]) current[nextKey] = {};
+                    current = current[nextKey];
+                }
+                const lastKey = keys[keys.length - 1];
+                current[lastKey] = v;
+
+                this.registry.set(rootKey, rootObj);
+            };
+        };
+
+        const scanItemsRecursively = (itemsDict) => {
+            Object.values(itemsDict).forEach(item => {
+                if (item.type === "group" && item.items) {
+                    scanItemsRecursively(item.items);
+                } else {
+                    bindGetSet(item);
+                }
+            });
+        };
 
         this.waitingKey = false;
         this.waitingOption = null;
