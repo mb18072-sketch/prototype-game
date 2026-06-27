@@ -78,7 +78,6 @@ export class UndertaleScene extends Phaser.Scene {
 
 
     createCommon() {
-        this.assets = this.registry.get("assets");
         this.input.setDefaultCursor("none");
 
         this.inputManager = new InputManager(this);
@@ -227,6 +226,12 @@ export class UndertaleScene extends Phaser.Scene {
 export class TitleScene extends UndertaleScene {
     constructor() {
         super({ key: "TitleScene"});
+    }
+
+    preload() {
+        this.load.bitmapFont("assets/fonts/dataFont/dataFont", "./assets/fonts/dataFont/dataFont.png", "./assets/fonts/dataFont/dataFont.xml");
+        this.load.bitmapFont("assets/fonts/JF-Dot-Shinonome14/JF-Dot-Shinonome14", "./assets/fonts/JF-Dot-Shinonome14/JF-Dot-Shinonome14.png", "./assets/fonts/JF-Dot-Shinonome14/JF-Dot-Shinonome14.xml");
+        this.load.bitmapFont("assets/fonts/Determinationmono/Determinationmono", "./assets/fonts/Determinationmono/Determinationmono.png", "./assets/fonts/Determinationmono/Determinationmono.xml");
     }
 
     onCreate() {
