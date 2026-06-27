@@ -767,12 +767,6 @@ export class BattleSelectScene extends UndertaleScene {
     async onCreate() {
         this.updateables = [];
 
-        this.drawText("[PRESS Z OR ENTER]",320,360,{
-            fontSize: 24,
-            color: 0x6f6f6f,
-            origin: 0.5
-        });
-
         const triggerText = this.drawText(320,240, "* [Press ENTER or Click to Load Battle Folder]", {
             fontSize: 20,
             color: 0xffffff,
