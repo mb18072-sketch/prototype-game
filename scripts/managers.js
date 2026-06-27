@@ -56,6 +56,7 @@ export class SoundManager {
 
     playBGM(key) {
         if (this.bgm) this.bgm.stop();
+        alert(this.scene.registry.get("bgm"));
 
         this.bgm = this.scene.sound.add(key, { loop: true });
         this.bgm.setVolume(this.getBGMVolume());
