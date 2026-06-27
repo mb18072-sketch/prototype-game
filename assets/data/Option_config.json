@@ -1,0 +1,67 @@
+{
+  "lang": {
+    "label": "option.lang",
+    "type": "cycle",
+    "value": ["en", "jp"],
+    "registryKey": "lang",
+    "default": "en"
+  },
+  "keybind": {
+    "label": "option.keybind.title",
+    "type": "label"
+  },
+  "keys": {
+    "handle": "option.keybind.actions",
+    "type": "group",
+    "items": {
+      "confirm": { "label": "confirm", "type": "key", "registryKey": "keybind.confirm" },
+      "cancel": { "label": "cancel", "type": "key", "registryKey": "keybind.cancel" },
+      "aux": { "label": "aux", "type": "key", "registryKey": "keybind.aux" },
+      "up": { "label": "up", "type": "key", "registryKey": "keybind.up" },
+      "down": { "label": "down", "type": "key", "registryKey": "keybind.down" },
+      "left": { "label": "left", "type": "key", "registryKey": "keybind.left" },
+      "right": { "label": "right", "type": "key", "registryKey": "keybind.right" },
+      "modifier": { "label": "modifier", "type": "key", "registryKey": "keybind.modifier" }
+    }
+  },
+  "sound": {
+    "label": "option.sound.title",
+    "type": "label"
+  },
+  "sounds": {
+    "handle": "option.sound",
+    "type": "group",
+    "items": {
+      "bgm": { "label": "bgm", "type": "persent", "registryKey": "bgm" },
+      "se": { "label": "se", "type": "persent", "registryKey": "se" }
+    }
+  },
+  "display": {
+    "label": "option.display",
+    "type": "label"
+  },
+  "fullscreen": {
+    "label": "option.fullscreen",
+    "type": "toggle",
+    "registryKey": "fullscreen"
+  },
+  "textSpeed": {
+    "label": "option.textSpeed",
+    "type": "range",
+    "min": 1,
+    "max": 15,
+    "registryKey": "textSpeed"
+  },
+  "battleUI": {
+    "label": "option.battleUI",
+    "type": "cycle",
+    "value": ["classic", "preview"],
+    "registryKey": "battleUI",
+    "default": "classic"
+  },
+  "developer": {
+    "label": "option.developer",
+    "type": "toggle",
+    "registryKey": "developer"
+  }
+}

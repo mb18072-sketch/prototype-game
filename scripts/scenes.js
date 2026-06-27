@@ -267,6 +267,18 @@ export class MainMenuScene extends UndertaleScene {
         super({ key: "MainMenuScene" });
     }
 
+    preload(){
+        this.load.json("assets/data/Menu_en", "./assets/data/Menu_en.json");
+        this.load.json("assets/data/Menu_jp", "./assets/data/Menu_jp.json");
+        this.load.json("assets/data/Option_en", "./assets/data/Option_en.json");
+        this.load.json("assets/data/Option_jp", "./assets/data/Option_jp.json");
+        this.load.json("assets/data/Option_config", "./assets/data/Option_config.json");
+
+        this.load.audio("assets/sounds/snd_switch", "./assets/sounds/snd_switch.mp3");
+        this.load.audio("assets/sounds/snd_confirm", "./assets/sounds/snd_confirm.mp3");
+        this.load.audio("assets/sounds/snd_cancel", "./assets/sounds/snd_cancel.mp3");
+    }
+
     onCreate() {
         this.items = [
             {label: "menu.option",x: 320,y: 220},
@@ -355,158 +367,7 @@ export class OptionScene extends UndertaleScene {
         key Enterが押されたときに、keyを変える画面を開くプレイヤーの操作がenter→Zだったら、ここに入る値はzになる
         group 複数のoptionを一つにまとめて管理ができる
         */
-        this.items = {
-            lang :{
-                label: "option.lang",
-                type: "cycle",
-                value: ["en","jp"],
-                get: () => this.registry.get("lang") ?? "en",
-                set: (v) => this.registry.set("lang",v)
-            },
-            keybind :{
-                label: "option.keybind.title",
-                type: "label"
-            },
-            keys :{
-                handle: "option.keybind.actions",
-                type: "group",
-                items: {
-                    confirm: {
-                        label: "confirm",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.confirm ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.confirm = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    cancel: {
-                        label: "cancel",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.cancel ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.cancel = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    aux: {
-                        label: "aux",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.aux ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.aux = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    up: {
-                        label: "up",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.up ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.up = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    down: {
-                        label: "down",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.down ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.down = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    left: {
-                        label: "left",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.left ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.left = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    right: {
-                        label: "right",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.right ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.right = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    },
-                    modifier: {
-                        label: "modifier",
-                        type: "key",
-                        get: () => this.registry.get("keybind")?.modifier ?? [],
-                        set: (v) => {
-                            const kb = this.registry.get("keybind");
-                            kb.modifier = v;
-                            this.registry.set("keybind",kb)
-                        }
-                    }
-                },
-            },
-            sound: {
-                label: "option.sound.title",
-                type: "label"
-            },
-            sounds: {
-                handle: "option.sound",
-                type: "group",
-                items: {
-                    bgm: {
-                        label: "bgm",
-                        type: "persent",
-                        get: () => this.registry.get("bgm"),
-                        set: (v) => this.registry.set("bgm",v)
-                    },
-                    se: {
-                        label: "se",
-                        type: "persent",
-                        get: () => this.registry.get("se"),
-                        set: (v) => this.registry.set("se",v)
-                    }
-                }
-            },
-            display: {
-                label: "option.display",
-                type: "label",
-            },
-            fullscreen: {
-                label: "option.fullscreen",
-                type: "toggle",
-                get: () => this.registry.get("fullscreen"),
-                set: (v) => this.registry.set("fullscreen",v)
-            },
-            textSpeed: {
-                label: "option.textSpeed",
-                type: "range",
-                min: 1,
-                max: 15,
-                get: () => this.registry.get("textSpeed"),
-                set: (v) => this.registry.set("textSpeed",v)
-            },
-            battleUI: {
-                label: "option.battleUI",
-                type: "cycle",
-                value:["classic","preview"],
-                get: () => this.registry.get("battleUI") ?? "classic",
-                set: (v) => this.registry.set("battleUI",v)
-            },
-            developer: {
-                label: "option.developer",
-                type: "toggle",
-                get: () => this.registry.get("developer"),
-                set: (v) => this.registry.set("developer",v)
-            }
-        }
+       this.items = 
 
         this.waitingKey = false;
         this.waitingOption = null;
