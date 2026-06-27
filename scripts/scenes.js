@@ -367,7 +367,7 @@ export class OptionScene extends UndertaleScene {
         key Enterが押されたときに、keyを変える画面を開くプレイヤーの操作がenter→Zだったら、ここに入る値はzになる
         group 複数のoptionを一つにまとめて管理ができる
         */
-        this.items = this.items = JSON.parse(JSON.stringify(this.cache.json.get("assets/data/Option_config")));
+        this.items = JSON.parse(JSON.stringify(this.cache.json.get("assets/data/Option_config")));
 
         const bindGetSet = (item) => {
             if (!item.registryKey) return;
@@ -407,6 +407,8 @@ export class OptionScene extends UndertaleScene {
                 }
             });
         };
+
+        scanItemsRecursively(this.items);
 
         this.waitingKey = false;
         this.waitingOption = null;
