@@ -765,155 +765,62 @@ export class BattleSelectScene extends UndertaleScene {
     }
 
     async onCreate() {
-    const root = this.registry.get("rootHandle");
+        this.updateables = [];
 
-        const assetsHandle = await root.getDirectoryHandle("assets");
-        const gamesHandle = await assetsHandle.getDirectoryHandle("games");
-
-        this.battles = [];
-
-        for await (const [name,handle] of gamesHandle.entries()) {
-            if (handle.kind !== "directory") continue;
-
-            const data = this.assets.getjson(
-                `assets/games/${name}/data/gamedata`
-            );
-
-            if (!data) continue;
-
-            this.battles.push({
-                id: name,
-                handle: handle,
-                data: data
-            });
-        }
-        this.UIType = this.registry.get("battleUI")==="preview";
-        this.battleCards = this.battles.map((b,i) => {
-            const icon = this.add.image(0,0,b.data.icon);
-            if (this.UIType) {
-                const text =
-                    this.drawText(
-                        b.id,
-                        40,
-                        120 + i * 40,
-                        {origin: 0}
-                    );
-                icon.x = 120;
-                icon.y = 0;
-                const obj1 = new BattleCard(this,0,text.y,b,"preview",{
-                    text: text,
-                    icon: icon
-                });
-                this.add.existing(obj1);
-                return obj1;
-            } else {
-                const border = this.add.rectangle(0,0,168,168,0xffffff).setOrigin(0.5);
-
-                const inner = this.add.rectangle(0,0,162,162,0x000000).setOrigin(0.5);
-                const obj2 = new BattleCard(this,360+i*207,240,b,"classic",{
-                    border: border,
-                    inner: inner,
-                    icon: icon
-                });
-                this.add.existing(obj2);
-                return obj2;
-            }
+        this.drawText("[PRESS Z OR ENTER]",320,360,{
+            fontSize: 24,
+            color: 0x6f6f6f,
+            origin: 0.5
         });
-        this.cursor = 0;
-        if (!this.UIType) {
-            this.soulCursor = this.add.sprite(0,0,"assets/images/soul/soul",0);
-            this.soulCursor.setTint(0xff0000);
-            this.soulCursor.setAngle(135);
-            this.scrollOffset = 0;
-            this.maxScroll = this.battles.length * 207-207;
-            window.addEventListener("mousemove", (e) => {
-                const rect = this.game.canvas.getBoundingClientRect();
 
-                const x = (e.clientX - rect.left) * (this.scale.width / rect.width);
-                const y = (e.clientY - rect.top) * (this.scale.height / rect.height);
-
-                this.soulCursor.x = x;
-                this.soulCursor.y = y;
-                const clampedX = Phaser.Math.Clamp(x, 0, this.scale.width);
-                const clampedY = Phaser.Math.Clamp(y, 0, this.scale.height);
-
-                this.soulCursor.x = clampedX;
-                this.soulCursor.y = clampedY;
-            });
-        }
-        this.input.on("pointerdown", (pointer) => {
-            for (let i = 0; i < this.battleCards.length; i++) {
-                const card = this.battleCards[i];
-
-        // scroll考慮した当たり判定
-                const bounds = card.getBounds();
-
-                if (bounds.contains(pointer.x, pointer.y)) {
-                    this.soundManager.playSE("assets/sounds/snd_confirm");
-
-                    const selected = this.battles[i];
-
-                    this.scene.start("PlayScene", {
-                        battle: selected
-                    });
-
-                    break;
-                }
-            }
+        const triggerText = this.drawText(320,240, "* [Press ENTER or Click to Load Battle Folder]", {
+            fontSize: 20,
+            color: 0xffffff,
+            origin: 0.5
         });
-    }
 
-    onUpdate() {
-        if (this.inputManager.wasPressed("cancel")) {
-            this.scene.start("MainMenuScene");
-            this.soundManager.playSE("assets/sounds/snd_cancel");
-        }
-        let select = false;
-        if (this.UIType) {
-            if (this.inputManager.wasPressed("up")) {
-                this.cursor = (this.cursor - 1 + this.battleCards.length) % this.battleCards.length;
-                this.soundManager.playSE("assets/sounds/snd_switch");
-            }
-
-            if (this.inputManager.wasPressed("down")) {
-                this.cursor = (this.cursor + 1) % this.battleCards.length;
-                this.soundManager.playSE("assets/sounds/snd_switch");
-            }
-
-            if (this.inputManager.wasPressed("confirm")) {
-                this.soundManager.playSE("assets/sounds/snd_confirm");
-                const selected = this.battles[this.cursor];
-
-                this.scene.start("PlayScene", {
-                    battle: selected
-                });
-            }
-
-            this.battleCards.forEach((t,i) => {
-                t.UIUpdate(i===this.cursor);
-            });
-        } else {
-            const pointer = this.input.activePointer;
-            
-            if (this.scrollOffset < 0) {
-                if (this.soulCursor.x < 30) {
-                    this.scrollOffset += 6;
-                }
-            }
-            if (this.scrollOffset > -this.maxScroll) {
-                if (this.soulCursor.x > 610) {
-                    this.scrollOffset -= 6;
-                }
-            }
-            for (const card of this.battleCards) {
+        const openFolderAndPlay = async () => {
+            try {
+                const dirHandle = await window.showDirectoryPicker();
                 
-                const isHover = card.getBounds().contains(pointer.x, pointer.y);
-                if (isHover && !card.wasSelected) this.soundManager.playSE("assets/sounds/snd_switch");
-                card.UIUpdate(isHover);
-                card.x = card.baseX + this.scrollOffset;
-                card.wasSelected = isHover
+                triggerText.setText("* Reading config...");
+                let battleData = null;
+
+                for await (const entry of dirHandle.values()) {
+                    if (entry.kind === "file" && entry.name.endsWith(".json")) {
+                        const file = await entry.getFile();
+                        const text = await file.text();
+                        battleData = JSON.parse(text);
+                        battleData.fileName = entry.name;
+                        break;
+                    }
+                }
+
+                if (!battleData) {
+                    triggerText.setText("* Error: No JSON file found in this folder.");
+                    return;
+                }
+
+                // 確定音を鳴らす
+                this.soundManager.playSE("assets/sounds/snd_confirm");
+
+                this.scene.start("PlayScene", battleData);
+
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    console.error("Folder read error:", err);
+                    triggerText.setText("* Failed to load. Try again.");
+                }
             }
-        }
+        };
+        triggerText.setInteractive({ useHandCursor: true });
+        triggerText.on("pointerdown", () => {
+            openFolderAndPlay();
+        });
+
+        this.input.keyboard.on("keydown-ENTER", () => {
+            openFolderAndPlay();
+        });
     }
 }
 
