@@ -313,6 +313,7 @@ export class MainMenuScene extends UndertaleScene {
 
         if (this.inputManager.wasPressed("confirm")
            ) {
+        alert("F")
             this.decide();
             this.soundManager.playSE("assets/sounds/snd_confirm");
            }
@@ -322,6 +323,8 @@ export class MainMenuScene extends UndertaleScene {
 
     decide() {
         const index = this.cursorManager.index;
+
+        alert("!!")
 
         switch (index) {
             case 0:
