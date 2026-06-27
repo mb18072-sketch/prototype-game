@@ -76,7 +76,9 @@ export class SoundManager {
 
     getSEVolume() {
         alert("vol")
-        return this.scene.registry.get("se") / 100;
+        const volume = this.scene.registry.get("se") / 100;
+        alert(volume);
+        return volume;
     }
 
     updateVolume() {
