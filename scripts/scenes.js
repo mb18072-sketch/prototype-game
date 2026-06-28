@@ -844,9 +844,9 @@ export class BattleSelectScene extends UndertaleScene {
                 case "fnt":
                     type = "xml";
                     break;
-                case "txt": type = "txt"; break;
+                case "txt": type = "text"; break;
                 case "ttf":
-                case "otf": type = "fontfile"; break;
+                case "otf": type = "font"; break;
 
                 case "png":
                 case "jpg":
@@ -880,6 +880,50 @@ export class BattleSelectScene extends UndertaleScene {
 export class PlayScene extends UndertaleScene {
     constructor() {
         super({key: "PlayScene"})
+    }
+
+    init(data) {
+        this.files = data.assets;
+    }
+
+    async preload() {
+        for (const [key,assets] of this.files.entries()) {
+            await this.sameKeyAssetsLoad(key,assets);
+        }
+
+        this.load.start();
+
+        await new Promise((resolve) => {
+            this.load.once("complete",resolve);
+        });
+    }
+
+    async sameKeyAssetsLoad(key,assets) {
+        const isBitmap = assets.some(asset => asset.type === "bitmap");
+
+        if (isBitmap) {
+            const imgAsset = assets.find(a => ["png", "jpg", "jpeg", "webp"].includes(a.ext));
+            const xmlAsset = assets.find(a => ["xml", "fnt"].includes(a.ext));
+
+            if (imgAsset && xmlAsset) {
+                const imgFile = await imgAsset.handle.getFile();
+                const xmlFile = await xmlAsset.handle.getFile();
+
+                const imgUrl = URL.createObjectURL(imgFile);
+                const xmlUrl = URL.createObjectURL(xmlFile);
+
+                this.load.bitmapFont(key, imgUrl, xmlUrl);
+            }
+        } else {
+            for (const asset of assets) {
+                const file = await asset.handle.getFile();
+                const blobUrl = URL.createObjectURL(file);
+
+                this.load[asset.type](key,blobUrl)
+            }
+        }
+
+        URL.revokeObjectURL(blobUrl);
     }
 
     onCreate() {
