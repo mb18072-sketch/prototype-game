@@ -919,11 +919,10 @@ export class PlayScene extends UndertaleScene {
                 const file = await asset.handle.getFile();
                 const blobUrl = URL.createObjectURL(file);
 
-                this.load[asset.type](key,blobUrl)
+                this.load[asset.type](key,blobUrl);
+                URL.revokeObjectURL(blobUrl);
             }
         }
-
-        URL.revokeObjectURL(blobUrl);
     }
 
     onCreate() {
