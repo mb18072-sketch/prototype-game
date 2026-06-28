@@ -769,16 +769,28 @@ export class BattleSelectScene extends UndertaleScene {
 
         this.updateables = [];
 
-        const triggerText = this.drawText("* [Press ENTER or Click to Load Battle Folder]",320,240,{
-            fontSize: 20,
-            color: 0xf0f0f0,
+        const triggerText = this.drawText("[CLICK TO LOAD BATTLE FOLDER]",320,240,{
+            fontSize: 32,
+            color: 0xffffff,
+            origin: 0.5
+        });
+
+        const exit = this.drawText("EXIT",200,480,{
+            fontSize: 32,
+            color: 0x6f6f6f,
+            origin: 0.5
+        });
+
+        const start = this.drawText("START",440,480,{
+            fontSize: 32,
+            color: 0x6f6f6f,
             origin: 0.5
         });
 
         const openFolderAndPlay = async () => {
             try{
                 const dirHandle = await window.showDirectoryPicker();
-                triggerText.setText("* Loading files...");
+                triggerText.setText("Loading files...");
                 await this.scanDirectory(dirHandle);
 
                 for (const [fileKey,array] of this._files) {
@@ -791,6 +803,9 @@ export class BattleSelectScene extends UndertaleScene {
                     for (const file of bitmapImg) file.type = "bitmap";
                     for (const file of bitmapXML) file.type = "bitmap";
                 }
+                triggerText.setText(`${dirHandle.name}`);
+                triggerText.setTint(0xffff33);
+                start.setTint(0xffffff);
             } catch (err) {
                 triggerText.setText("Can't load the folder");
             }
