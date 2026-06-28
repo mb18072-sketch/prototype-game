@@ -806,15 +806,22 @@ export class BattleSelectScene extends UndertaleScene {
                 triggerText.setText(`${dirHandle.name}`);
                 triggerText.setTint(0xffff33);
                 start.setTint(0xffffff);
+
+                start.setInteractive({ useHandCursor: true });
+                start.on("pointerdown", () => {
+                    this.scene.start("PlayScene",{
+                        assets: this._files
+                    });
+                });
             } catch (err) {
                 triggerText.setText("Can't load the folder");
             }
         }
 
         triggerText.setInteractive({ useHandCursor: true });
-        triggerText.on("pointerdown", () => {
-            openFolderAndPlay();
-        });
+                triggerText.on("pointerdown", () => {
+                    openFolderAndPlay();
+                });
     }
 
     async scanDirectory(dirHandle, basePath = "") {
