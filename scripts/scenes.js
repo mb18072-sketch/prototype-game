@@ -765,6 +765,8 @@ export class BattleSelectScene extends UndertaleScene {
     }
 
     async onCreate() {
+        this._files = new Map();
+
         this.updateables = [];
 
         const triggerText = this.drawText("* [Press ENTER or Click to Load Battle Folder]",320,240,{
@@ -774,43 +776,82 @@ export class BattleSelectScene extends UndertaleScene {
         });
 
         const openFolderAndPlay = async () => {
-            try {
+            try{
                 const dirHandle = await window.showDirectoryPicker();
-                
-                triggerText.setText("* Reading config...");
-                let battleData = null;
+                triggerText.setText("* Loading files...");
+                await this.scanDirectory(dirHandle);
 
-                for await (const entry of dirHandle.values()) {
-                    if (entry.kind === "file" && entry.name.endsWith(".json")) {
-                        const file = await entry.getFile();
-                        const text = await file.text();
-                        battleData = JSON.parse(text);
-                        battleData.fileName = entry.name;
-                        break;
-                    }
+                for (const [fileKey,array] of this._files) {
+                    if (array.length <= 1) continue;
+
+                    const bitmapImg = array.filter(file => file.type === "image");
+                    const bitmapXML = array.filter(file => file.type === "xml");
+
+                    if (bitmapImg.length === 0 || bitmapXML.length === 0) continue;
+                    for (const file of bitmapImg) file.type = "bitmap";
+                    for (const file of bitmapXML) file.type = "bitmap";
                 }
-
-                if (!battleData) {
-                    triggerText.setText("* Error: No JSON file found in this folder.");
-                    return;
-                }
-
-                // 確定音を鳴らす
-                this.soundManager.playSE("assets/sounds/snd_confirm");
-
-                this.scene.start("PlayScene", battleData);
-
             } catch (err) {
-                if (err.name !== "AbortError") {
-                    console.error("Folder read error:", err);
-                    triggerText.setText("* Failed to load. Try again.");
-                }
+                triggerText.setText("Can't load the folder");
             }
-        };
+        }
+
         triggerText.setInteractive({ useHandCursor: true });
         triggerText.on("pointerdown", () => {
             openFolderAndPlay();
         });
+    }
+
+    async scanDirectory(dirHandle, basePath = "") {
+        for await (const [name, handle] of dirHandle.entries()) {
+            const path = basePath ? `${basePath}/${name}` : name;
+
+            if (handle.kind === "directory") {
+                await this.scanDirectory(handle, path);
+                continue;
+            }
+
+            const ext = path.split(".").pop().toLowerCase();
+            const key = this._makeKey(path);
+
+            let type = null;
+
+            switch (ext) {
+                case "json": type = "json"; break;
+                case "xml":
+                case "fnt":
+                    type = "xml";
+                    break;
+                case "txt": type = "txt"; break;
+                case "ttf":
+                case "otf": type = "fontfile"; break;
+
+                case "png":
+                case "jpg":
+                case "jpeg":
+                case "webp":
+                    type = "image";
+                    break;
+
+                case "ogg":
+                case "mp3":
+                case "wav":
+                    type = "audio";
+                    break;
+            }
+
+            if (!type) continue;
+
+            if (!this._files.has(key)) {
+                this._files.set(key, []);
+            }
+
+            this._files.get(key).push({handle, path, type,ext});
+        }
+    }
+
+    _makeKey(path) {
+        return path.replace(/\.[^/.]+$/, "");
     }
 }
 
