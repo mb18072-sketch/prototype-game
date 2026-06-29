@@ -990,6 +990,7 @@ export class PlayScene extends UndertaleScene {
     }
 
     onCreate() {
+        alert("create")
         for (const blobUrl of this.blobUrls) {
             URL.revokeObjectURL(blobUrl);
         }
@@ -998,6 +999,7 @@ export class PlayScene extends UndertaleScene {
         this.board = new Board(this,320,320,566,130);
         this.soul = new RedSoul(this,320,320,this.board);
         const bone = new Bone(this,320,320,20);
+        alert("createEnd")
     }
 
     onUpdate(time,delta) {
