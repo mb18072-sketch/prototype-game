@@ -875,9 +875,43 @@ export class BattleSelectScene extends UndertaleScene {
         });
 
         exit.setInteractive({ useHandCursor: true });
-        exit.on("pointerdown", () => {
+        exit.on("pointerdown",async () => {
+            this.blobUrls = [];
+
+            for (const [key,assets] of this.files.entries()) {
+                await this.sameKeyAssetsLoad(key,assets);
+            }
             this.scene.start("MainMenuScene");
         });
+    }
+
+    async sameKeyAssetsLoad(key,assets) {
+        const isBitmap = assets.some(asset => asset.type === "bitmap");
+
+        if (isBitmap) {
+            const imgAsset = assets.find(a => ["png", "jpg", "jpeg", "webp"].includes(a.ext));
+            const xmlAsset = assets.find(a => ["xml", "fnt"].includes(a.ext));
+
+            if (imgAsset && xmlAsset) {
+                const imgFile = await imgAsset.handle.getFile();
+                const xmlFile = await xmlAsset.handle.getFile();
+
+                const imgUrl = URL.createObjectURL(imgFile);
+                const xmlUrl = URL.createObjectURL(xmlFile);
+
+                this.load.bitmapFont(key, imgUrl, xmlUrl);
+
+                this.blobUrls.push(imgUrl,xmlUrl);
+            }
+        } else {
+            for (const asset of assets) {
+                const file = await asset.handle.getFile();
+                const blobUrl = URL.createObjectURL(file);
+
+                this.load[asset.type](key,blobUrl);
+                this.blobUrls.push(blobUrl);
+            }
+        }
     }
 
     async scanDirectory(dirHandle, basePath = "") {
@@ -942,12 +976,8 @@ export class PlayScene extends UndertaleScene {
         this.files = data.assets;
     }
 
-    async preload() {
-        this.blobUrls = [];
+    preload() {
         alert("preload start")
-        for (const [key,assets] of this.files.entries()) {
-            await this.sameKeyAssetsLoad(key,assets);
-        }
 
         alert("1")
 
@@ -958,35 +988,6 @@ export class PlayScene extends UndertaleScene {
         });
 
         alert("preload end")
-    }
-
-    async sameKeyAssetsLoad(key,assets) {
-        const isBitmap = assets.some(asset => asset.type === "bitmap");
-
-        if (isBitmap) {
-            const imgAsset = assets.find(a => ["png", "jpg", "jpeg", "webp"].includes(a.ext));
-            const xmlAsset = assets.find(a => ["xml", "fnt"].includes(a.ext));
-
-            if (imgAsset && xmlAsset) {
-                const imgFile = await imgAsset.handle.getFile();
-                const xmlFile = await xmlAsset.handle.getFile();
-
-                const imgUrl = URL.createObjectURL(imgFile);
-                const xmlUrl = URL.createObjectURL(xmlFile);
-
-                this.load.bitmapFont(key, imgUrl, xmlUrl);
-
-                this.blobUrls.push(imgUrl,xmlUrl);
-            }
-        } else {
-            for (const asset of assets) {
-                const file = await asset.handle.getFile();
-                const blobUrl = URL.createObjectURL(file);
-
-                this.load[asset.type](key,blobUrl);
-                this.blobUrls.push(blobUrl);
-            }
-        }
     }
 
     onCreate() {
