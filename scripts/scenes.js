@@ -893,6 +893,8 @@ export class PlayScene extends UndertaleScene {
 
         this.load.start();
 
+        alert("loadstart")
+
         await new Promise((resolve) => {
             this.load.once("complete",resolve);
         });
