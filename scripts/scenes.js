@@ -78,6 +78,8 @@ export class UndertaleScene extends Phaser.Scene {
 
 
     createCommon() {
+        this.pendingAnimation = [];
+
         this.input.setDefaultCursor("none");
 
         this.inputManager = new InputManager(this);
@@ -95,6 +97,48 @@ export class UndertaleScene extends Phaser.Scene {
     }
 
     onCreate() {}
+
+    loadSpriteSheet(key,img,config) {
+        if (config?.meta?.type === "spritesheet") {
+            this.load.spritesheet(
+                key,
+                img,
+                {
+                    frameWidth: config.texture.frameWidth,
+                    frameHeight: config.texture.frameHeight,
+                    margin: config.texture.margin ?? 0,
+                    spacing: config.texture.spacing ?? 0
+                }
+            );
+
+            this.pendingAnimation.push({
+                key: key,
+                config: config
+            })
+        }
+    }
+
+    createSpriteAnimation() {
+        for (const sheet of this.pendingAnimation) {
+            const key = sheet.key;
+            const config = sheet.config;
+
+            if (config.animations) {
+                for (const [animName, anim] of Object.entries(config.animations)) {
+                    this.anims.create({
+                        key: `${key}:${animName}`,
+                        frames: this.anims.generateFrameNumbers(key,{
+                            frames: anim.frames
+                        }),
+                        frameRate: anim.frameRate,
+                        repeat: anim.repeat
+                    });
+                }
+            }
+        }
+
+        this.pendingAnimation.length = 0;
+    }
 
     createDebugOverlay() {
         this.debugText = this.add.bitmapText(12,12,"assets/fonts/dataFont/dataFont","", 16).setDepth(9999);
@@ -765,13 +809,13 @@ export class BattleSelectScene extends UndertaleScene {
     }
 
     preload() {
-        this.load.image("assets/images/soul/soul","./assets/images/soul/soul.png");
-        this.load.json("assets/images/soul/soul","./assets/images/soul/soul.json");
+        this.loadSpriteSheet("assets/images/soul/soul","./assets/images/soul/soul.png","./assets/images/soul/soul.json");
 
         this.load.image("assets/images/bone","./assets/images/bone.png");
     }
 
     async onCreate() {
+        this.createSpriteAnimation();
         this._files = new Map();
 
         this.updateables = [];
