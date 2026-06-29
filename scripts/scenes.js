@@ -764,6 +764,13 @@ export class BattleSelectScene extends UndertaleScene {
         super({key: "BattleSelectScene"});
     }
 
+    preload() {
+        this.load.image("assets/images/soul/soul","./assets/images/soul/soul.png");
+        this.load.json("assets/images/soul/soul","./assets/images/soul/soul.json");
+
+        this.load.image("assets/images/bone","./assets/images/bone.png");
+    }
+
     async onCreate() {
         this._files = new Map();
 
@@ -775,13 +782,13 @@ export class BattleSelectScene extends UndertaleScene {
             origin: 0.5
         });
 
-        const exit = this.drawText("EXIT",200,480,{
+        const exit = this.drawText("EXIT",200,400,{
             fontSize: 32,
-            color: 0x6f6f6f,
+            color: 0xffffff,
             origin: 0.5
         });
 
-        const start = this.drawText("START",440,480,{
+        const start = this.drawText("START",440,400,{
             fontSize: 32,
             color: 0x6f6f6f,
             origin: 0.5
@@ -819,9 +826,14 @@ export class BattleSelectScene extends UndertaleScene {
         }
 
         triggerText.setInteractive({ useHandCursor: true });
-                triggerText.on("pointerdown", () => {
-                    openFolderAndPlay();
-                });
+        triggerText.on("pointerdown", () => {
+            openFolderAndPlay();
+        });
+
+        exit.setInteractive({ useHandCursor: true });
+        exit.on("pointerdown", () => {
+            this.scene.start("MainMenuScene");
+        });
     }
 
     async scanDirectory(dirHandle, basePath = "") {
@@ -892,8 +904,6 @@ export class PlayScene extends UndertaleScene {
         }
 
         this.load.start();
-
-        alert("loadstart")
 
         await new Promise((resolve) => {
             this.load.once("complete",resolve);
