@@ -943,6 +943,7 @@ export class PlayScene extends UndertaleScene {
     }
 
     async preload() {
+        this.blobUrls = [];
         for (const [key,assets] of this.files.entries()) {
             await this.sameKeyAssetsLoad(key,assets);
         }
@@ -969,6 +970,8 @@ export class PlayScene extends UndertaleScene {
                 const xmlUrl = URL.createObjectURL(xmlFile);
 
                 this.load.bitmapFont(key, imgUrl, xmlUrl);
+
+                this.blobUrls.push(imgUrl,xmlUrl);
             }
         } else {
             for (const asset of assets) {
@@ -976,12 +979,16 @@ export class PlayScene extends UndertaleScene {
                 const blobUrl = URL.createObjectURL(file);
 
                 this.load[asset.type](key,blobUrl);
-                URL.revokeObjectURL(blobUrl);
+                this.blobUrls.push(blobUrl);
             }
         }
     }
 
     onCreate() {
+        for (const blobUrl of this.blobUrls) {
+            URL.revokeObjectURL(blobUrl);
+        }
+        this.blobUrls = null;
         this.updateables = [];
         this.board = new Board(this,320,320,566,130);
         this.soul = new RedSoul(this,320,320,this.board);
