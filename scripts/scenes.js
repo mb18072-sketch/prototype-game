@@ -988,7 +988,7 @@ export class PlayScene extends UndertaleScene {
         for (const blobUrl of this.blobUrls) {
             URL.revokeObjectURL(blobUrl);
         }
-        this.blobUrls = null;
+        this.blobUrls.length = 0;
         this.updateables = [];
         this.board = new Board(this,320,320,566,130);
         this.soul = new RedSoul(this,320,320,this.board);
