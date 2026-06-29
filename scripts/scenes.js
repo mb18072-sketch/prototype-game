@@ -944,15 +944,20 @@ export class PlayScene extends UndertaleScene {
 
     async preload() {
         this.blobUrls = [];
+        alert("preload start")
         for (const [key,assets] of this.files.entries()) {
             await this.sameKeyAssetsLoad(key,assets);
         }
+
+        alert("1")
 
         this.load.start();
 
         await new Promise((resolve) => {
             this.load.once("complete",resolve);
         });
+
+        alert("preload end")
     }
 
     async sameKeyAssetsLoad(key,assets) {
