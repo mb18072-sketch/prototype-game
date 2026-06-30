@@ -986,7 +986,7 @@ export class PlayScene extends UndertaleScene {
 
                 this.load.bitmapFont(key,img.url,xml.url);
             } else {
-                for (const assets of asset) {
+                for (const asset of asset) {
                     this.load[asset.type](key,asset.url);
                 }
             }
@@ -999,7 +999,9 @@ export class PlayScene extends UndertaleScene {
         alert("create")
         for (const assets of this.files.values()) {
             for (const asset of assets) {
-                URL.revokeObjectURL(asset.url);
+                if (asset.url?.startsWith("blob:")) {
+                    URL.revokeObjectURL(asset.url);
+                }
             }
         }
         this.updateables = [];
