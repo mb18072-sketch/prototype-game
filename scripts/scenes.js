@@ -986,7 +986,7 @@ export class PlayScene extends UndertaleScene {
 
                 this.load.bitmapFont(key,img.url,xml.url);
             } else {
-                for (const asset of asset) {
+                for (const asset of assets) {
                     this.load[asset.type](key,asset.url);
                 }
             }
