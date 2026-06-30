@@ -806,6 +806,7 @@ export class OptionScene extends UndertaleScene {
 export class BattleSelectScene extends UndertaleScene {
     constructor() {
         super({key: "BattleSelectScene"});
+        alert(Phaser.VERSION);
     }
 
     preload() {
