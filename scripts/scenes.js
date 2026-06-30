@@ -859,7 +859,12 @@ export class BattleSelectScene extends UndertaleScene {
                 start.setTint(0xffffff);
 
                 start.setInteractive({ useHandCursor: true });
-                start.on("pointerdown", () => {
+                start.on("pointerdown",async () => {
+                                this.blobUrls = [];
+
+            for (const [key,assets] of this._files.entries()) {
+                await this.sameKeyAssetsLoad(key,assets);
+            }
                     this.scene.start("PlayScene",{
                         assets: this._files
                     });
@@ -876,11 +881,6 @@ export class BattleSelectScene extends UndertaleScene {
 
         exit.setInteractive({ useHandCursor: true });
         exit.on("pointerdown",async () => {
-            this.blobUrls = [];
-
-            for (const [key,assets] of this.files.entries()) {
-                await this.sameKeyAssetsLoad(key,assets);
-            }
             this.scene.start("MainMenuScene");
         });
     }
@@ -899,9 +899,8 @@ export class BattleSelectScene extends UndertaleScene {
                 const imgUrl = URL.createObjectURL(imgFile);
                 const xmlUrl = URL.createObjectURL(xmlFile);
 
-                this.load.bitmapFont(key, imgUrl, xmlUrl);
-
-                this.blobUrls.push(imgUrl,xmlUrl);
+                imgAsset.blobUrl = imgUrl;
+                xmlAsset.blobUrl = xmlUrl;
             }
         } else {
             for (const asset of assets) {
