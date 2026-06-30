@@ -806,7 +806,6 @@ export class OptionScene extends UndertaleScene {
 export class BattleSelectScene extends UndertaleScene {
     constructor() {
         super({key: "BattleSelectScene"});
-        alert(Phaser.VERSION);
     }
 
     preload() {
@@ -816,6 +815,7 @@ export class BattleSelectScene extends UndertaleScene {
     }
 
     async onCreate() {
+        alert(Phaser.VERSION);
         this.createSpriteAnimation();
         this._files = new Map();
 
