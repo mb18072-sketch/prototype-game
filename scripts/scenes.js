@@ -860,7 +860,6 @@ export class BattleSelectScene extends UndertaleScene {
 
                 start.setInteractive({ useHandCursor: true });
                 start.on("pointerdown",async () => {
-                                this.blobUrls = [];
 
             for (const [key,assets] of this._files.entries()) {
                 await this.sameKeyAssetsLoad(key,assets);
@@ -899,16 +898,15 @@ export class BattleSelectScene extends UndertaleScene {
                 const imgUrl = URL.createObjectURL(imgFile);
                 const xmlUrl = URL.createObjectURL(xmlFile);
 
-                imgAsset.blobUrl = imgUrl;
-                xmlAsset.blobUrl = xmlUrl;
+                imgAsset.url = imgUrl;
+                xmlAsset.url = xmlUrl;
             }
         } else {
             for (const asset of assets) {
                 const file = await asset.handle.getFile();
                 const blobUrl = URL.createObjectURL(file);
 
-                this.load[asset.type](key,blobUrl);
-                this.blobUrls.push(blobUrl);
+                asset.url = blobUrl;
             }
         }
     }
@@ -980,21 +978,30 @@ export class PlayScene extends UndertaleScene {
 
         alert("1")
 
-        this.load.start();
+        for (const [key,assets] of this.files) {
+            const isBitmap = assets.some(asset => asset.type ==="bitmap");
+            if (isBitmap) {
+                const img = assets.find(a => ["png", "jpg", "jpeg", "webp"].includes(a.ext));
+                const xml = assets.find(a => ["xml", "fnt"].includes(a.ext));
 
-        await new Promise((resolve) => {
-            this.load.once("complete",resolve);
-        });
+                this.load.bitmapFont(key,img.url,xml.url);
+            } else {
+                for (const assets of asset) {
+                    this.load[asset.type](key,asset.url);
+                }
+            }
+        }
 
         alert("preload end")
     }
 
     onCreate() {
         alert("create")
-        for (const blobUrl of this.blobUrls) {
-            URL.revokeObjectURL(blobUrl);
+        for (const assets of this.files.values()) {
+            for (const asset of assets) {
+                URL.revokeObjectURL(asset.url);
+            }
         }
-        this.blobUrls.length = 0;
         this.updateables = [];
         this.board = new Board(this,320,320,566,130);
         this.soul = new RedSoul(this,320,320,this.board);
