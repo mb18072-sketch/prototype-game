@@ -975,10 +975,6 @@ export class PlayScene extends UndertaleScene {
     }
 
     preload() {
-        alert("preload start")
-
-        alert("1")
-
         for (const [key,assets] of this.files) {
             const isBitmap = assets.some(asset => asset.type ==="bitmap");
             if (isBitmap) {
@@ -992,12 +988,9 @@ export class PlayScene extends UndertaleScene {
                 }
             }
         }
-
-        alert("preload end")
     }
 
     onCreate() {
-        alert("create")
         for (const assets of this.files.values()) {
             for (const asset of assets) {
                 if (asset.url?.startsWith("blob:")) {
@@ -1009,15 +1002,6 @@ export class PlayScene extends UndertaleScene {
         this.board = new Board(this,320,320,566,130);
         this.soul = new RedSoul(this,320,320,this.board);
         const bone = new Bone(this,320,320,20);
-        alert("createEnd")
-
-        const textures = this.textures.getKeys();
-    alert('--- Loaded Textures ---'+textures);
-
-    // その他のキャッシュ（音声、JSON、タイルマップなど）を取得
-    alert('--- Loaded Sound ---'+this.cache.audio.getKeys());
-    alert('--- Loaded JSON ---'+this.cache.json.getKeys());
-    alert('--- Loaded Tilemaps ---'+this.cache.tilemap.getKeys());
     }
 
     onUpdate(time,delta) {
