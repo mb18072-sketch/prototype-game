@@ -1010,9 +1010,18 @@ export class PlayScene extends UndertaleScene {
         this.soul = new RedSoul(this,320,320,this.board);
         const bone = new Bone(this,320,320,20);
         alert("createEnd")
+
+        const textures = this.textures.getKeys();
+    alert('--- Loaded Textures ---'+textures);
+
+    // その他のキャッシュ（音声、JSON、タイルマップなど）を取得
+    alert('--- Loaded Sound ---'+this.cache.audio.getKeys());
+    alert('--- Loaded JSON ---'+this.cache.json.getKeys());
+    alert('--- Loaded Tilemaps ---'+this.cache.tilemap.getKeys());
     }
 
     onUpdate(time,delta) {
+        alert("update")
         for (const obj of this.updateables) {
             obj.update0?.(time,delta);
         }
